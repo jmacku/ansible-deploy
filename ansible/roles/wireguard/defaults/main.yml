@@ -1,0 +1,9 @@
+---
+# WireGuard interface settings
+wireguard_interface: wg0
+wireguard_port: 51820
+wireguard_address: 10.0.0.0/24
+# PrivateKey should be provided via Ansible Vault or lookup
+wireguard_private_key: ""
+# Peer definitions can be added in group_vars or host_vars
+wireguard_peers: []

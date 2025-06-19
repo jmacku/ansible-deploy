@@ -1,0 +1,6 @@
+---
+blackbox_exporter_user: "blackbox_exporter"
+blackbox_exporter_group: "blackbox_exporter"
+blackbox_exporter_version: "0.26.0"
+blackbox_exporter_install_path: "/opt/blackbox_exporter"
+

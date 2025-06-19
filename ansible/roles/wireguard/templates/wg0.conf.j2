@@ -1,0 +1,14 @@
+[Interface]
+Address = {{ wireguard_address }}
+ListenPort = {{ wireguard_port }}
+PreUp = iptables -t nat -A POSTROUTING -s {{ wireguard_address }} -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+PostUp = wg set %i private-key /etc/wireguard/private.key
+PostDown = iptables -t nat -D POSTROUTING -s {{ wireguard_address }} -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+
+{% for peer in wireguard_peers %}
+[Peer]
+PublicKey = {{ peer.public_key }}
+AllowedIPs = {{ peer.allowed_ips }}
+{% if peer.endpoint is defined %}Endpoint = {{ peer.endpoint }}
+{% endif %}
+{% endfor %}

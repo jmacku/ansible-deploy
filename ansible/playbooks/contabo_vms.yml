@@ -1,0 +1,21 @@
+---
+- name: Deploy software on Contabo
+  hosts: contabo
+  become: yes
+
+  roles:
+    - fail2ban
+    - docker
+    - nginx
+    - certbot-nginx
+#    - wireguard
+
+#  pre_tasks:
+#    - name: Create deploy user
+#      ansible.builtin.user:
+#        name: deploy
+#        comment: "Deploy user"
+#        shell: /bin/bash
+#        create_home: yes
+#        state: absent
+

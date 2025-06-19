@@ -1,0 +1,14 @@
+wireguard_address: 100.64.0.1/10
+wireguard_peers:
+  ## hassio
+  - public_key: "rt31MusX3c0GBBXbHmJqqokAOH67B2xADhgbBJNJ2Fk="
+    allowed_ips: "100.71.221.85/32"
+    #endpoint: "peer1.example.com:51820"
+  ## Pivodovi
+  - public_key: "qzC3HvbeIHGScbcTQoRvv9g/8+0vP7r58nW4oEWETUA="
+    allowed_ips: "100.71.221.86/32"
+  ## Jama
+  - public_key: "b/53pPGZTWECwnGKQOc/XAIFFCoCG4VWoQqcI+fDuSs="
+    allowed_ips: "100.71.221.87/32"
+    #endpoint: "192.0.2.10:51820"
+

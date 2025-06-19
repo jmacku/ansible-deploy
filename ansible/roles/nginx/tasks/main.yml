@@ -1,0 +1,211 @@
+---
+- name: Install apt-transport-https
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - gpg
+    state: present
+    update_cache: yes
+
+- name: Add Nginx GPG key
+  ansible.builtin.apt_key:
+    url: "{{ nginx_signing_key_url }}"
+    state: present
+
+- name: Add Nginx APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb {{ nginx_repository_url }} {{ nginx_repo_codename }} nginx"
+    state: present
+    filename: nginx_org
+
+- name: Add Nginx APT source repository
+  ansible.builtin.apt_repository:
+    repo: "deb-src {{ nginx_repository_url }} {{ nginx_repo_codename }} nginx"
+    state: present
+    filename: nginx_org_src
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Nginx package
+  ansible.builtin.apt:
+    name: "{{ nginx_package_name }}"
+    state: latest
+
+- name: Copy custom Nginx config file to nginx directory
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/{{ item | basename }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/_services/nginx/nginx.conf', wantlist=True) }}"
+  notify: restart nginx
+  tags: nginx-config
+
+- name: Copy default custom Nginx config files to conf.d
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/{{ item | basename }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/_services/nginx/conf.d/*.conf', wantlist=True) }}"
+  notify: restart nginx
+  tags: nginx-config
+
+- name: Template specific Nginx config files to conf.d
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/{{ item | basename | regex_replace('.j2$', '') }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/' + group_names[0] + '/nginx/conf.d/*.conf.j2', wantlist=True) }}"
+  when: group_names[0] is defined
+  notify: restart nginx
+  tags: [nginx-config, nginx-config-custom]
+
+- name: remove wrong config from conf.d
+  ansible.builtin.file:
+    path: "/etc/nginx/conf.d/xx.mon.kardi-ai.org.conf"
+    state: absent
+  # if the file does not exist, do not fail the playbook
+  ignore_errors: true
+
+# check if "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem" exists on host and store result in a variable
+- name: Check if /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+  register: letsencrypt_fullchain_stat
+  tags: nginx-ssl
+
+# generate dummy SSL certificate which will be used as temporary certificate and replaced by LE later
+- name: Generate self-signed SSL certificate
+  ansible.builtin.command: >
+      openssl req -x509 -nodes -days 3
+      -newkey rsa:2048
+      -keyout {{ nginx_self_signed_key_path}}
+      -out {{ nginx_self_signed_cert_path }}
+      -subj "/C=US/ST=State/L=City/O=Organization/CN=example.com"
+  args:
+      creates: "{{ nginx_self_signed_cert_path }}"
+  tags: nginx-ssl
+  when: not letsencrypt_fullchain_stat.stat.exists
+
+# copy self-signed SSL certificate and key to /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem and /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
+# ensure the directory exists
+- name: Ensure /etc/letsencrypt/live/{{ inventory_hostname }} directory exists
+  ansible.builtin.file:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}"
+    state: directory
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: '0755'
+  tags: nginx-ssl
+  when: not letsencrypt_fullchain_stat.stat.exists
+
+- name: Copy self-signed SSL certificate to /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem
+  ansible.builtin.copy:
+    src: "{{ nginx_self_signed_cert_path }}"
+    dest: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+    remote_src: true
+  tags: nginx-ssl
+  when: not letsencrypt_fullchain_stat.stat.exists
+
+- name: Ensure /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem file exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem"
+  register: letsencrypt_privkey_stat
+  tags: nginx-ssl
+
+- name: Copy self-signed SSL key to /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem
+  ansible.builtin.copy:
+    src: "{{nginx_self_signed_key_path }}"
+    dest: "/etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem"
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: '0600'
+    remote_src: true
+  tags: nginx-ssl
+  when: not letsencrypt_privkey_stat.stat.exists
+
+- name: Check if /etc/letsencrypt/options-ssl-nginx.conf file exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/options-ssl-nginx.conf"
+  register: letsencrypt_sslconfig_stat
+  tags: nginx-ssl
+
+- name: Copy /etc/letsencrypt/options-ssl-nginx.conf if not exists
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../group_files/_services/nginx/options-ssl-nginx.conf.j2"
+    dest: "/etc/letsencrypt/options-ssl-nginx.conf"
+#    state: present
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: '0640'
+  tags: nginx-ssl
+#  when: not letsencrypt_sslconfig_stat.stat.exists
+
+- name: Check if remote DH params do not exist or are empty
+  ansible.builtin.stat:
+    path: "{{ nginx_dhparam_path }}"
+  register: letsencrypt_dhparams_stat
+  tags: [nginx-ssl, nginx-dhparam]
+
+- name: Check if local DH params exist for host
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: "{{ nginx_local_dhparam_path }}"
+  register: local_dhparams_stat
+  run_once: false
+  become: false
+  tags: [nginx, nginx-ssl, nginx-dhparam]
+
+- name: Ensure local DH params directory exists
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: "{{ nginx_local_dhparam_path | dirname }}"
+    state: directory
+  become: false
+  tags: [nginx, nginx-ssl, nginx-dhparam]
+
+- name: Generate DH params locally for host if not present
+  delegate_to: localhost
+  community.crypto.openssl_dhparam:
+    path: "{{ nginx_local_dhparam_path }}"
+    size: 4096
+    mode: '0644'
+  when: >
+    (not local_dhparams_stat.stat.exists 
+    or (local_dhparams_stat.stat.exists and local_dhparams_stat.stat.size == 0))
+    and not letsencrypt_dhparams_stat.stat.exists
+  run_once: false
+  become: false
+  tags: [nginx-ssl, nginx-dhparam]
+
+- name: Copy DH params from localhost to remote host
+  ansible.builtin.copy:
+    src: "{{ nginx_local_dhparam_path }}"
+    dest: "{{ nginx_dhparam_path }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  when: not letsencrypt_dhparams_stat.stat.exists or (letsencrypt_dhparams_stat.stat.exists and letsencrypt_dhparams_stat.stat.size == 0)
+  tags: [nginx-ssl, nginx-dhparam]
+
+- name: Ensure Nginx is enabled and running
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- import_tasks: kardi-proxy.yml
+  when: kardiai_proxy_hosts is defined
+  tags: [nginx, kardi-proxy]
+
+- meta: flush_handlers

@@ -1,0 +1,10 @@
+[DEFAULT]
+bantime = {{ fail2ban_jails.sshd.bantime }}
+findtime = 600
+maxretry = {{ fail2ban_jails.sshd.maxretry }}
+banaction = {{ fail2ban_banaction }}
+
+[{% if 'sshd' in fail2ban_jails %}sshd{% endif %}]
+enabled = {{ 'true' if fail2ban_jails.sshd.enabled else 'false' }}
+port = {{ fail2ban_jails.sshd.port }}
+logpath = {{ fail2ban_jails.sshd.logpath }}

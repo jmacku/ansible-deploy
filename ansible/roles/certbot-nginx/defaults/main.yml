@@ -1,0 +1,14 @@
+---
+# Email address for Let's Encrypt registrations
+certbot_email: "admin@example.com"
+
+# List of domains to obtain certificates for
+certbot_domains:
+  - example.com
+  - www.example.com
+
+# Use Let's Encrypt staging environment? (true/false)
+certbot_staging: false
+
+# Command to run after successful renewal (e.g., reload nginx)
+certbot_renew_hook: "systemctl reload nginx"

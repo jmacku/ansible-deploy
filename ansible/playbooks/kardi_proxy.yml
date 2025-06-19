@@ -1,0 +1,9 @@
+---
+- name: KardiAI SSL Proxy Setup
+  hosts: kardi_proxy
+  become: yes
+
+  roles:
+#    - base
+#    - nginx
+    - copy-secrets-from-k8s

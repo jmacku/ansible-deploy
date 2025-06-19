@@ -1,0 +1,51 @@
+#- name: Ensure Docker is installed (optional if you handle it elsewhere)
+#  ansible.builtin.package:
+#    name: docker
+#    state: present
+
+- name: Pull latest Grafana Docker image
+  community.docker.docker_image:
+    name: "{{ grafana_image }}"
+    source: pull
+
+- name: Run Grafana container
+  community.docker.docker_container:
+    name: "{{ grafana_container_name }}"
+    image: "{{ grafana_image }}"
+    state: started
+    restart_policy: "{{ grafana_restart_policy }}"
+    network_mode: host
+    volumes: "{{ grafana_volumes }}"
+    env: "{{ grafana_env }}"
+
+- name: Add default Prometheus datasource to Grafana
+  community.grafana.grafana_datasource:
+    grafana_url: "http://localhost:3000"
+    grafana_user: "{{ grafana_env.GF_SECURITY_ADMIN_USER }}"
+    grafana_password: "{{ grafana_env.GF_SECURITY_ADMIN_PASSWORD }}"
+    name: "Prometheus"
+    ds_type: "prometheus"
+    ds_url: "http://localhost:9090"
+    is_default: true
+    state: present
+  tags: grafana_datasource
+
+- name: Copy Grafana dashboards to remote host
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/grafana_dashboards/"
+  with_fileglob:
+    - "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
+  tags: grafana_dashboards
+
+- name: Import dashboards into Grafana
+  community.grafana.grafana_dashboard:
+    grafana_url: "http://localhost:3000"
+    grafana_user: "{{ grafana_env.GF_SECURITY_ADMIN_USER }}"
+    grafana_password: "{{ grafana_env.GF_SECURITY_ADMIN_PASSWORD }}"
+    state: present
+    overwrite: true
+    path: "/tmp/grafana_dashboards/{{ item | basename }}"
+  with_fileglob:
+    - "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
+  tags: grafana_dashboards

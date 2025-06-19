@@ -1,0 +1,79 @@
+## Test env
+- targets:
+  - https://api.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    target: https://api.kardi-ai.org
+    environment: test
+- targets:
+  - https://partner.kardi-ai.org/api/v2/general/health-check
+  labels:
+    target: https://partner.kardi-ai.org
+    environment: test
+- targets:
+  - https://mb.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    target: https://mb.kardi-ai.org
+    environment: test
+# web services
+- targets:
+  - https://web.kardi-ai.org
+  labels:
+    target: https://web.kardi-ai.org
+    environment: test
+- targets:
+  - https://pay.kardi-ai.org
+  labels:
+    target: https://pay.kardi-ai.org
+    environment: test
+
+## Training env
+- targets:
+  - https://api.ait.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    target: https://api.ait.kardi-ai.org
+    environment: training
+- targets:
+  - https://mb.ait.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    target: https://mb.ait.kardi-ai.org
+    environment: training
+# web services
+- targets:
+  - https://web.ait.kardi-ai.org
+  labels:
+    target: https://web.ait.kardi-ai.org
+    environment: training
+- targets:
+  - https://pay.ait.kardi-ai.org
+  labels:
+    target: https://pay.ait.kardi-ai.org
+    environment: training
+
+## Production
+# API services
+- targets:
+  - https://api.kardi-ai.com/api/v1/general/liveness-probe
+  labels:
+    target: https://api.kardi-ai.com
+    environment: production
+- targets:
+  - https://partner.kardi-ai.com/api/v2/general/health-check
+  labels:
+    target: https://partner.kardi-ai.com
+    environment: production
+- targets:
+  - https://mb.kardi-ai.com/api/v1/general/liveness-probe
+  labels:
+    target: https://mb.kardi-ai.com
+    environment: production
+# web services
+- targets:
+  - https://web.kardi-ai.com
+  labels:
+    target: https://web.kardi-ai.com
+    environment: production
+- targets:
+  - https://pay.kardi-ai.com
+  labels:
+    target: https://pay.kardi-ai.com
+    environment: production

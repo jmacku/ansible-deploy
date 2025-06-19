@@ -1,0 +1,4 @@
+# used in nginx configuration to whitelist IPs
+grafana_allowed_ips:
+  - 77.240.104.25
+  - 18.193.52.239

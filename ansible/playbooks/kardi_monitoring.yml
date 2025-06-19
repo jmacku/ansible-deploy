@@ -1,0 +1,13 @@
+---
+- name: KardiAI Monitoring Setup
+  hosts: kardi_monitoring
+  become: yes
+
+  roles:
+    - base
+#    - docker
+#    - blackbox_exporter
+#    - prometheus
+#    - grafana_docker
+#    - nginx
+#    - certbot-nginx

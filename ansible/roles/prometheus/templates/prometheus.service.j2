@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus
+After=network.target
+
+[Service]
+Type=simple
+User={{ prometheus_user }}
+Group={{ prometheus_group }}
+ExecStart={{ prometheus_install_path }}/prometheus \
+  --config.file={{ prometheus_install_path }}/prometheus.yml \
+  --storage.tsdb.path={{ prometheus_install_path }}/data \
+  --storage.tsdb.retention.time={{ prometheus_data_retention }} \
+  --web.listen-address={{ prometheus_exposed_url }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

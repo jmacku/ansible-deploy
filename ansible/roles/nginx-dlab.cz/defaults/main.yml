@@ -1,0 +1,6 @@
+---
+nginx_repo_enabled: true
+nginx_repo_codename: "{{ ansible_lsb.codename }}"
+nginx_signing_key_url: https://nginx.org/keys/nginx_signing.key
+nginx_repository_url: http://nginx.org/packages/ubuntu
+nginx_package_name: nginx

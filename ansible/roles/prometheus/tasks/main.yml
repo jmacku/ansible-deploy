@@ -1,0 +1,118 @@
+---
+- name: Create prometheus group
+  ansible.builtin.group:
+    name: "{{ prometheus_group | default('prometheus') }}"
+    system: yes
+
+- name: Create blackbox user
+  ansible.builtin.user:
+    name: "{{ prometheus_user | default('prometheus') }}"
+    group: "{{ prometheus_group | default('prometheus') }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
+- name: Check if Prometheus is already installed
+  command: "{{ prometheus_install_path }}/prometheus --version"
+  register: prometheus_check
+  changed_when: false
+  failed_when: false
+
+- name: Extract installed Prometheus version
+  set_fact:
+    installed_prometheus_version: "{{ prometheus_check.stdout | regex_search('version ([0-9.]+)', '\\1') | join('') }}"
+  when: prometheus_check.rc == 0
+
+- name: Debug version comparison
+  debug:
+    msg: >
+      Installed Prometheus version: {{ installed_prometheus_version }},
+      Target version: {{ prometheus_version }},
+      Match: {{ installed_prometheus_version == prometheus_version }}
+  when: |
+      prometheus_check.rc == 0
+      and installed_prometheus_version != prometheus_version
+
+- name: Set flag to skip download if version matches
+  set_fact:
+    prometheus_skip_install: "{{ installed_prometheus_version == prometheus_version }}"
+  when: installed_prometheus_version is defined
+
+- name: Ensure install path exists
+  ansible.builtin.file:
+    path: "{{ prometheus_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: not prometheus_skip_install | default(false)
+
+- name: Ensure Prometheus data directory exists
+  ansible.builtin.file:
+    path: "{{ prometheus_install_path }}/data"
+    state: directory
+    owner: root
+    group: adm
+    mode: '0765'
+  when: not prometheus_skip_install | default(false)
+
+- name: Map architecture for Prometheus download
+  ansible.builtin.set_fact:
+    prometheus_arch: >-
+      {% if ansible_architecture == 'x86_64' %}amd64{% elif ansible_architecture == 'aarch64' %}arm64{% else %}{{ ansible_architecture }}{% endif %}
+  when: not prometheus_skip_install | default(false)
+
+- name: Download Prometheus (version and architecture aware)
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-{{ prometheus_arch }}.tar.gz"
+    dest: "/tmp/prometheus.tar.gz"
+    mode: '0644'
+  when: not prometheus_skip_install | default(false)
+
+- name: Extract Prometheus
+  ansible.builtin.unarchive:
+    src: "/tmp/prometheus.tar.gz"
+    dest: "{{ prometheus_install_path }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  notify: restart prometheus
+  when: not prometheus_skip_install | default(false)
+
+- name: Copy Prometheus config
+  ansible.builtin.copy:
+    src: "{{ prometheus_config_file }}"
+    dest: "{{ prometheus_install_path }}/prometheus.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart prometheus
+  tags: prometheus-config
+
+- name: Copy Prometheus web targets file
+  ansible.builtin.copy:
+    src: "{{ blackbox_targets_file }}"
+    dest: "{{ prometheus_install_path }}/web-targets.yml"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: '0644'
+  notify: restart prometheus
+  when: blackbox_targets_file is defined
+  tags: prometheus-config
+
+- name: chown Prometheus files
+  ansible.builtin.file:
+    path: "{{ prometheus_install_path }}"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    recurse: yes
+    state: directory
+  notify: restart prometheus
+
+- name: Create systemd service for Prometheus
+  ansible.builtin.template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+    mode: '0644'
+  notify: restart prometheus
+
+- meta: flush_handlers

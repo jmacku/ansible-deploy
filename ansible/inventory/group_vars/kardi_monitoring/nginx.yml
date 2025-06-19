@@ -1,0 +1,13 @@
+---
+nginx_repo_enabled: true
+nginx_repo_codename: "{{ ansible_lsb.codename }}"
+nginx_signing_key_url: https://nginx.org/keys/nginx_signing.key
+nginx_repository_url: "http://nginx.org/packages/{{ ansible_lsb.id | lower }}"
+nginx_package_name: nginx
+nginx_user: nginx
+nginx_group: nginx
+nginx_self_signed_cert_name: nginx-selfsigned
+nginx_self_signed_cert_path: "/etc/ssl/certs/{{ nginx_self_signed_cert_name }}.pem"
+nginx_self_signed_key_path: "/etc/ssl/private/{{ nginx_self_signed_cert_name }}.key"
+nginx_dhparam_path: "/etc/nginx/dhparam.pem"
+nginx_local_dhparam_path: "{{ playbook_dir }}/../host_files/{{ inventory_hostname }}/dhparam.pem"

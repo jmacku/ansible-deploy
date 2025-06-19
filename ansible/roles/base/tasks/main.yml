@@ -1,0 +1,58 @@
+#- name: Disable IPv6 for APT
+#  ansible.builtin.copy:
+#    dest: /etc/apt/apt.conf.d/99force-ipv4
+#    content: 'Acquire::ForceIPv4 "true";'
+#    mode: '0644'
+#  # when distribution is Debian
+#  when: ansible_distribution == 'Debian'
+#
+#- name: Create proper Debian sources configuration
+#  ansible.builtin.copy:
+#    dest: /etc/apt/sources.list.d/debian.sources
+#    content: |
+#      Types: deb deb-src
+#      URIs: http://deb.debian.org/debian
+#      Suites: bookworm bookworm-updates bookworm-backports
+#      Components: main
+#      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+#
+#      Types: deb deb-src
+#      URIs: http://security.debian.org/debian-security
+#      Suites: bookworm-security
+#      Components: main
+#      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+#    mode: '0644'
+#    backup: yes
+#  register: sources_updated
+#  when: ansible_distribution == 'Debian'
+#
+#- name: Clean APT lists after sources update
+#  ansible.builtin.file:
+#    path: /var/lib/apt/lists/
+#    state: absent
+#  when: sources_updated.changed and ansible_distribution == 'Debian'
+
+- name: Install base tools
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - gpg
+      - vim
+      - less
+      - curl
+      - net-tools
+      - dnsutils
+      - screen
+      - ncdu
+    state: present
+    update_cache: yes
+  when: ansible_lsb.id in ['Debian', 'Ubuntu']
+
+- name: Convert hostname to lowercase and replace dots with dashes
+  ansible.builtin.set_fact:
+    hostname: "{{ inventory_hostname | lower | regex_replace('\\.', '-') }}"
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+  when: hostname != ansible_hostname

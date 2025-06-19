@@ -1,0 +1,97 @@
+---
+- name: Create blackbox group
+  ansible.builtin.group:
+    name: "{{ blackbox_exporter_group | default('blackbox_exporter') }}"
+    system: yes
+
+- name: Create blackbox user
+  ansible.builtin.user:
+    name: "{{ blackbox_exporter_user | default('blackbox_exporter') }}"
+    group: "{{ blackbox_exporter_group | default('blackbox_exporter') }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
+- name: Check if Blackbox Exporter is already installed
+  command: "{{ blackbox_exporter_install_path }}/blackbox_exporter --version"
+  register: blackbox_exporter_check
+  changed_when: false
+  failed_when: false
+
+- name: Extract installed Blackbox Exporter version
+  set_fact:
+    installed_blackbox_exporter_version: "{{ blackbox_exporter_check.stdout | regex_search('version ([0-9.]+)', '\\1') | join('') }}"
+  when: blackbox_exporter_check.rc == 0
+
+- name: Debug version comparison
+  debug:
+    msg: >
+      Installed Blackbox Exporter version: {{ installed_blackbox_exporter_version }},
+      Target version: {{ blackbox_exporter_version }},
+      Match: {{ installed_blackbox_exporter_version == blackbox_exporter_version }}
+  when: |
+    blackbox_exporter_check.rc == 0
+    and installed_blackbox_exporter_version != blackbox_exporter_version
+
+- name: Set flag to skip download if version matches
+  set_fact:
+    blackbox_exporter_skip_install: "{{ installed_blackbox_exporter_version == blackbox_exporter_version }}"
+  when: installed_blackbox_exporter_version is defined
+
+- name: Ensure install path exists
+  ansible.builtin.file:
+    path: "{{ blackbox_exporter_install_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: not blackbox_exporter_skip_install | default(false)
+
+- name: Map architecture for Blackbox Exporter download
+  ansible.builtin.set_fact:
+    blackbox_exporter_arch: >-
+      {% if ansible_architecture == 'x86_64' %}amd64{% elif ansible_architecture == 'aarch64' %}arm64{% else %}{{ ansible_architecture }}{% endif %}
+  when: not blackbox_exporter_skip_install | default(false)
+
+- name: Download Blackbox Exporter (version and architecture aware)
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_exporter_version }}/blackbox_exporter-{{ blackbox_exporter_version }}.linux-{{ blackbox_exporter_arch }}.tar.gz"
+    dest: "/tmp/blackbox_exporter.tar.gz"
+    mode: '0644'
+  when: not blackbox_exporter_skip_install | default(false)
+
+- name: Extract Blackbox Exporter
+  ansible.builtin.unarchive:
+    src: "/tmp/blackbox_exporter.tar.gz"
+    dest: "{{ blackbox_exporter_install_path }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  when: not blackbox_exporter_skip_install | default(false)
+  notify: restart blackbox_exporter
+
+- name: chown Blackbox Exporter files
+  ansible.builtin.file:
+    path: "{{ blackbox_exporter_install_path }}"
+    owner: "{{ blackbox_exporter_user }}"
+    group: "{{ blackbox_exporter_group }}"
+    recurse: yes
+    state: directory
+  notify: restart blackbox_exporter
+
+#- name: Copy Blackbox Exporter config
+#  ansible.builtin.copy:
+#    src: "{{ blackbox_exporter_config_file }}"
+#    dest: "{{ blackbox_exporter_install_path }}/blackbox.yml"
+#    owner: "{{ blackbox_exporter_user }}"
+#    group: "{{ blackbox_exporter_group }}"
+#    mode: '0644'
+#  notify: restart blackbox_exporter
+
+- name: Create systemd service for Blackbox Exporter
+  ansible.builtin.template:
+    src: blackbox_exporter.service.j2
+    dest: /etc/systemd/system/blackbox_exporter.service
+    mode: '0644'
+  notify: restart blackbox_exporter
+
+- meta: flush_handlers

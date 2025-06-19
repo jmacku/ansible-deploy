@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus Blackbox Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ blackbox_exporter_user }}
+Group={{ blackbox_exporter_group }}
+ExecStart={{ blackbox_exporter_install_path }}/blackbox_exporter \
+  --config.file={{ blackbox_exporter_install_path }}/blackbox.yml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

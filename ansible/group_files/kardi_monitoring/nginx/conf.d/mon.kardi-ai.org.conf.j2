@@ -1,0 +1,54 @@
+upstream grafana {
+    server 127.0.0.1:3000;
+}
+
+server {
+    listen 80;
+    server_name "{{ inventory_hostname }}";
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name "{{ inventory_hostname }}";
+
+    # SSL certs (e.g. from Let's Encrypt)
+    ssl_certificate     /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem;
+    include             /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam         /etc/nginx/dhparam.pem;
+
+    client_max_body_size 10M;
+
+    # ----------------------------------------------------
+    # Serve everything at / as if it were /status/example-com
+    # ----------------------------------------------------
+    location / {
+        # proxy_pass with a URI; nginx will strip the leading “/”
+        proxy_pass         http://grafana/;
+        #proxy_http_version 1.1;
+
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # WebSocket support (for live updates)
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+
+        proxy_read_timeout  90s;
+        proxy_send_timeout  90s;
+
+        {% if grafana_allowed_ips is defined -%}
+        # allow only for specific IPs
+        {% for ip in grafana_allowed_ips -%}
+        allow {{ ip }};
+        {% endfor -%}
+        {% else -%}
+        # grafana_allowed_ips node defined, allowing only for localhost
+        allow 127.0.0.1;
+        {% endif -%}
+        deny all;
+    }
+}

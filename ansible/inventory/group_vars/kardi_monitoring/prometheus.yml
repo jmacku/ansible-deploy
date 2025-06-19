@@ -1,0 +1,6 @@
+prometheus_data_retention: "100d"
+prometheus_version: "3.4.1"
+prometheus_exposed_url: "localhost:9090"
+prometheus_config_file: "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/prometheus.yml"
+blackbox_exporter_version: "0.26.0"
+blackbox_targets_file: "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/web-targets.yml"

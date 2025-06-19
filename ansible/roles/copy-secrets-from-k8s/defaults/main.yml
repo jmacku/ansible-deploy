@@ -1,0 +1,12 @@
+ssl_secret_list: []
+#  - name: "cert1-tls"
+#    namespace: "mynamespace"
+    ## cert_name is used as a nginx host and directory with cert_name/fullchain.pem is created on target server
+#    cert_name: "full.ssl.hostname"
+
+
+# These should already be defined in your existing setup
+nginx_user: "nginx"
+nginx_group: "nginx"
+
+kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') | default('~/.kube/config') }}"

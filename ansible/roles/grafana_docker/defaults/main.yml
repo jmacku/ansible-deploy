@@ -1,0 +1,10 @@
+grafana_container_name: grafana
+grafana_image: grafana/grafana-oss:latest
+
+grafana_ports:
+  - "127.0.0.1:3000:3000"
+
+grafana_volumes:
+  - grafana_data:/var/lib/grafana
+
+grafana_restart_policy: unless-stopped

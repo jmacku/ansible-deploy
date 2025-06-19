@@ -1,0 +1,14 @@
+---
+# Enable SSH jail by default
+fail2ban_jails:
+  sshd:
+    enabled: true
+    port: ssh
+    logpath: /var/log/auth.log
+    maxretry: 3
+    bantime: 3600
+
+# Ban action to use
+#fail2ban_banaction: iptables-multiport
+## when using ufw adjust the action
+fail2ban_banaction: ufw

@@ -1,0 +1,134 @@
+---
+- name: check "/etc/letsencrypt/options-ssl-nginx.conf" size
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/options-ssl-nginx.conf"
+  register: letsencrypt_ssl_options_stat
+  tags: [certbot, certbot-files]
+
+- name: Remove existing Let's Encrypt files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  when: >
+    letsencrypt_ssl_options_stat.stat.exists 
+    and letsencrypt_ssl_options_stat.stat.size == 0
+  tags: [certbot, certbot-files]
+  with_items:
+    - "/etc/letsencrypt/options-ssl-nginx.conf"
+    - "/etc/letsencrypt/live/{{ certbot_domains[0] }}"
+  register: letsencrypt_files_removed
+  ignore_errors: true
+
+- name: Install Certbot and Nginx plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: latest
+    update_cache: yes
+  tags: [certbot, certbot-install]
+
+- name: check "/etc/letsencrypt/options-ssl-nginx.conf" size
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/options-ssl-nginx.conf"
+  register: letsencrypt_ssl_options_stat
+  tags: [certbot, certbot-files]
+
+- name: check if certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+  register: letsencrypt_cert_stat
+  tags: [certbot, certbot-files]
+
+- name: Copy default options-ssl-nginx.conf if it does not exist
+  ansible.builtin.copy:
+    src: "{{ "
+    dest: "/etc/letsencrypt/options-ssl-nginx.conf"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: yes
+  when: not letsencrypt_ssl_options_stat.stat.exists
+  tags: [certbot, certbot-files]
+
+- name: Find nginx config files with ssl_certificate
+  ansible.builtin.find:
+    paths: /etc/nginx/conf.d/
+    patterns: '*.conf'
+    contains: 'ssl_certificate'
+    read_whole_file: true
+  register: nginx_conf_files
+  tags: [certbot, certbot-files]
+
+- name: Cheack if nginx config files contains LE path "/etc/letsencrypt/live"
+  ansible.builtin.find:
+    paths: "{{ item.path }}"
+    patterns: '*.conf'
+    contains: '/etc/letsencrypt/live'
+    read_whole_file: true
+  loop: "{{ nginx_conf_files.files }}"
+  register: nginx_conf_files_with_le_path
+  when: nginx_conf_files.files | length > 0
+  tags: [certbot, certbot-files]
+
+- name: list content of nginx_conf_files
+  ansible.builtin.debug:
+    var: nginx_conf_files.files
+  when: nginx_conf_files.files | length > 0
+  tags: [certbot, certbot-files]
+
+- name: list content of nginx_conf_files
+  ansible.builtin.debug:
+    var: nginx_conf_files_with_le_path
+  when: nginx_conf_files_with_le_path
+  tags: [certbot, certbot-files]
+
+- name: Replace certificate path in nginx config
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: 'ssl_certificate\s+([^\s;]+)'
+    replace: 'ssl_certificate {{ nginx_self_signed_cert_path }}'
+    backup: true
+  loop: "{{ nginx_conf_files.files }}"
+  when: not letsencrypt_cert_stat.stat.exists and letsencrypt_cert_in_nginx_conf is defined
+  tags: [certbot, certbot-files]
+
+- name: Replace certificate path in nginx config
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: 'ssl_certificate_key\s+([^\s;]+)'
+    replace: 'ssl_certificate_key {{ nginx_self_signed_key_path }}'
+    # backup is done in previous task
+    #backup: true
+  loop: "{{ nginx_conf_files.files }}"
+  when: not letsencrypt_cert_stat.stat.exists and letsencrypt_cert_in_nginx_conf is defined
+  tags: [certbot, certbot-files]
+
+- name: Ensure nginx config is valid
+  ansible.builtin.command: nginx -t
+  register: nginx_config_test
+  failed_when: nginx_config_test.rc != 0
+  changed_when: false
+  tags: [nginx, nginx-config-test, certbot-issue]
+
+- name: Obtain or renew Let's Encrypt certificates
+  ansible.builtin.command: >-
+    certbot run --nginx -v
+    {% if certbot_staging -%} --staging {% endif -%}
+    --agree-tos --non-interactive
+    --email "{{ certbot_email }}"
+    {% for d in certbot_domains -%}-d {{ d }} {% endfor -%}
+#  args:
+#    creates: "/etc/letsencrypt/live/{{ certbot_domains[0] }}/fullchain.pem"
+  notify: reload nginx
+  when: nginx_config_test.rc == 0
+  tags: [certbot, certbot-issue]
+
+- name: Setup daily certificate renewal via cron
+  ansible.builtin.cron:
+    name: "certbot renew"
+    job: "certbot renew --post-hook '{{ certbot_renew_hook }}'"
+    minute: "0"
+    hour: "3"
+    user: root
+  tags: [certbot, certbot-cron]
