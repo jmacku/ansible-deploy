@@ -1,0 +1,53 @@
+---
+# Uptime Kuma Docker image configuration
+uptime_kuma_image: "louislam/uptime-kuma"
+uptime_kuma_version: "latest"
+
+# Container configuration
+uptime_kuma_container_name: "uptime-kuma"
+uptime_kuma_restart_policy: "unless-stopped"
+
+# Network configuration for Nginx reverse proxy
+uptime_kuma_port: 3001
+uptime_kuma_bind_ip: "127.0.0.1"  # Bind only to localhost for security
+uptime_kuma_ports:
+  - "{{ uptime_kuma_bind_ip | default(omit) }}:{{ uptime_kuma_port }}:3001"
+
+# Data persistence
+uptime_kuma_data_dir: "/opt/uptime-kuma/data"
+uptime_kuma_volumes:
+  - "{{ uptime_kuma_data_dir }}:/app/data"
+
+# Environment variables
+uptime_kuma_env:
+  # Set the base URL if using a subdirectory
+  # UPTIME_KUMA_BASE_URL: "https://yourdomain.com/uptime"
+  TZ: "{{ timezone | default('UTC') }}"
+
+# Resource limits (optional)
+# uptime_kuma_memory: "512m"
+# uptime_kuma_cpus: "0.5"
+
+# User/Group for data directory
+uptime_kuma_user: "root"
+uptime_kuma_group: "root"
+
+# Health check configuration
+uptime_kuma_health_check_enabled: true
+uptime_kuma_health_check_retries: 30
+uptime_kuma_health_check_delay: 10
+
+# Nginx configuration
+uptime_kuma_nginx_enabled: true
+uptime_kuma_nginx_server_name: "{{ inventory_hostname | default('localhost') }}"
+uptime_kuma_nginx_ssl_enabled: true
+uptime_kuma_nginx_ssl_cert_path: "/etc/ssl/certs/{{ uptime_kuma_nginx_server_name }}.crt"
+uptime_kuma_nginx_ssl_key_path: "/etc/ssl/private/{{ uptime_kuma_nginx_server_name }}.key"
+uptime_kuma_nginx_config_path: "/etc/nginx/conf.d"
+uptime_kuma_nginx_config_enabled_path: "/etc/nginx/sites-enabled"
+
+# WebSocket configuration for Nginx
+uptime_kuma_nginx_websocket_enabled: true
+
+nginx_user: nginx
+nginx_group: nginx

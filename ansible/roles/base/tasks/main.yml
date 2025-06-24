@@ -44,15 +44,19 @@
       - dnsutils
       - screen
       - ncdu
+      - rsync
     state: present
     update_cache: yes
   when: ansible_lsb.id in ['Debian', 'Ubuntu']
+  tags: [base]
 
 - name: Convert hostname to lowercase and replace dots with dashes
   ansible.builtin.set_fact:
     hostname: "{{ inventory_hostname | lower | regex_replace('\\.', '-') }}"
+  tags: [base]
 
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ hostname }}"
   when: hostname != ansible_hostname
+  tags: [base]

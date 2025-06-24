@@ -1,0 +1,4 @@
+certbot_domains:
+  - "{{ inventory_hostname }}"
+  - "uptime.{{ inventory_hostname }}"
+  - "status.kardi-ai.com"

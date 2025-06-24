@@ -109,13 +109,13 @@
   register: nginx_config_test
   failed_when: nginx_config_test.rc != 0
   changed_when: false
-  tags: [nginx, nginx-config-test, certbot-issue]
+  tags: [certbot, nginx, nginx-config-test, certbot-issue]
 
 - name: Obtain or renew Let's Encrypt certificates
   ansible.builtin.command: >-
     certbot run --nginx -v
     {% if certbot_staging -%} --staging {% endif -%}
-    --agree-tos --non-interactive
+    --agree-tos --non-interactive --expand 
     --email "{{ certbot_email }}"
     {% for d in certbot_domains -%}-d {{ d }} {% endfor -%}
 #  args:

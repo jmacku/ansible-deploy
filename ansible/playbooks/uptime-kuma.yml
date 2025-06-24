@@ -1,0 +1,35 @@
+---
+- name: Deploy Uptime Kuma with Nginx
+  hosts: uptime
+  become: true
+  vars:
+    # Uptime Kuma configuration
+    uptime_kuma_version: "1.23.16"
+    uptime_kuma_bind_ip: "127.0.0.1"
+    uptime_kuma_port: 3001
+    uptime_kuma_data_dir: "/opt/uptime-kuma/data"
+    
+    # Nginx configuration
+    uptime_kuma_nginx_enabled: true
+    uptime_kuma_nginx_host: "de.mon.kardi-ai.org"
+    uptime_kuma_nginx_status_host: "status.kardi-ai.com"
+    uptime_kuma_nginx_server_name: "uptime.{{ uptime_kuma_nginx_host }}"
+    uptime_kuma_nginx_ssl_enabled: true
+    uptime_kuma_nginx_ssl_cert_path: "/etc/letsencrypt/live/{{ uptime_kuma_nginx_host }}-0001/fullchain.pem"
+    uptime_kuma_nginx_ssl_key_path: "/etc/letsencrypt/live/{{ uptime_kuma_nginx_host }}-0001/privkey.pem"
+
+    uptime_kuma_allowed_ips:
+      - 18.193.52.239
+#      - 77.240.104.25
+
+    # Environment variables
+    uptime_kuma_env:
+      TZ: "Europe/Berlin"
+      NODE_ENV: "production"
+    
+    # Resource limits
+    uptime_kuma_memory: "512m"
+    uptime_kuma_cpus: "0.5"
+  
+  roles:
+    - uptime-kuma

@@ -1,0 +1,45 @@
+---
+- name: Create Uptime Kuma data directory
+  ansible.builtin.file:
+    path: "{{ uptime_kuma_data_dir }}"
+    state: directory
+    owner: "{{ uptime_kuma_user | default('root') }}"
+    group: "{{ uptime_kuma_group | default('root') }}"
+    mode: '0755'
+
+- name: Pull Uptime Kuma Docker image
+  community.docker.docker_image:
+    name: "{{ uptime_kuma_image }}"
+    source: pull
+    tag: "{{ uptime_kuma_version }}"
+
+- name: Run Uptime Kuma container
+  community.docker.docker_container:
+    name: "{{ uptime_kuma_container_name }}"
+    image: "{{ uptime_kuma_image }}:{{ uptime_kuma_version }}"
+    state: started
+    restart_policy: "{{ uptime_kuma_restart_policy }}"
+    ports: "{{ uptime_kuma_ports }}"
+    volumes: "{{ uptime_kuma_volumes }}"
+    env: "{{ uptime_kuma_env }}"
+    networks: "{{ uptime_kuma_networks | default(omit) }}"
+    labels: "{{ uptime_kuma_labels | default({}) }}"
+    memory: "{{ uptime_kuma_memory | default(omit) }}"
+    cpus: "{{ uptime_kuma_cpus | default(omit) }}"
+  notify: restart uptime-kuma
+
+- name: Wait for Uptime Kuma to be ready
+  ansible.builtin.uri:
+    url: "http://{{ uptime_kuma_bind_ip }}:{{ uptime_kuma_port }}"
+    method: GET
+    status_code: 200
+  register: uptime_kuma_check
+  until: uptime_kuma_check.status == 200
+  retries: "{{ uptime_kuma_health_check_retries }}"
+  delay: "{{ uptime_kuma_health_check_delay }}"
+  when: uptime_kuma_health_check_enabled
+
+- name: Configure Nginx reverse proxy
+  include_tasks: nginx.yml
+  when: uptime_kuma_nginx_enabled
+  tags: [nginx-config]
