@@ -1,6 +1,6 @@
 - name: copy nginx config for kardi proxy
   ansible.builtin.template:
-    src: "{{ playbook_dir }}/../group_files/_services/kardi-proxy/kardi-proxy.conf.j2"
+    src: "{{ playbook_dir }}/../inventory/group_files/_services/kardi-proxy/kardi-proxy.conf.j2"
     dest: "/etc/nginx/conf.d/kardi-proxy.conf"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
@@ -19,7 +19,7 @@
 
 - name: Copy certificates for kardi proxy
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../host_files/{{ inventory_hostname }}/fullchain.pem"
+    src: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/fullchain.pem"
     dest: "/etc/nginx/ssl/{{ inventory_hostname }}/fullchain.pem"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
@@ -29,7 +29,7 @@
 
 - name: Copy private key for kardi proxy
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../host_files/{{ inventory_hostname }}/privkey.pem"
+    src: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/privkey.pem"
     dest: "/etc/nginx/ssl/{{ inventory_hostname }}/privkey.pem"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"

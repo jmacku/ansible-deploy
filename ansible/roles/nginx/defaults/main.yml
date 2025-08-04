@@ -10,4 +10,4 @@ nginx_self_signed_cert_name: nginx-selfsigned
 nginx_self_signed_cert_path: "/etc/ssl/certs/{{ nginx_self_signed_cert_name }}.pem"
 nginx_self_signed_key_path: "/etc/ssl/private/{{ nginx_self_signed_cert_name }}.key"
 nginx_dhparam_path: "/etc/nginx/dhparam.pem"
-nginx_local_dhparam_path: "{{ playbook_dir }}/../host_files/{{ inventory_hostname }}/dhparam.pem"
+nginx_local_dhparam_path: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/dhparam.pem"

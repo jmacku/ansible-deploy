@@ -40,7 +40,7 @@
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
     mode: '0644'
-  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/_services/nginx/nginx.conf', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/_services/nginx/nginx.conf', wantlist=True) }}"
   notify: restart nginx
   tags: nginx-config
 
@@ -51,7 +51,7 @@
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
     mode: '0644'
-  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/_services/nginx/conf.d/*.conf', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/_services/nginx/conf.d/*.conf', wantlist=True) }}"
   notify: restart nginx
   tags: nginx-config
 
@@ -62,7 +62,7 @@
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
     mode: '0644'
-  loop: "{{ lookup('fileglob', playbook_dir + '/../group_files/' + group_names[0] + '/nginx/conf.d/*.conf.j2', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/' + group_names[0] + '/nginx/conf.d/*.conf.j2', wantlist=True) }}"
   when: group_names[0] is defined
   notify: restart nginx
   tags: [nginx-config, nginx-config-custom]
@@ -142,7 +142,7 @@
 
 - name: Copy /etc/letsencrypt/options-ssl-nginx.conf if not exists
   ansible.builtin.template:
-    src: "{{ playbook_dir }}/../group_files/_services/nginx/options-ssl-nginx.conf.j2"
+    src: "{{ playbook_dir }}/../inventory/group_files/_services/nginx/options-ssl-nginx.conf.j2"
     dest: "/etc/letsencrypt/options-ssl-nginx.conf"
 #    state: present
     owner: "root"

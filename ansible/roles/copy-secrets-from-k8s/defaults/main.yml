@@ -9,4 +9,4 @@ ssl_secret_list: []
 nginx_user: "nginx"
 nginx_group: "nginx"
 
-kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') | default('~/.kube/config') }}"
+#kubeconfig_path: "{{ lookup('env', 'KUBECONFIG') }}"

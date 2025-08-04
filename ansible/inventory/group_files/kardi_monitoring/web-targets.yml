@@ -21,6 +21,11 @@
     target: https://web.kardi-ai.org
     environment: test
 - targets:
+  - https://web.kardi-ai.org/static/favicon.e68d001a9fb1.svg
+  labels:
+    target: https://web.kardi-ai.com/favicon.svg
+    environment: test
+- targets:
   - https://pay.kardi-ai.org
   labels:
     target: https://pay.kardi-ai.org
@@ -72,6 +77,11 @@
   labels:
     target: https://web.kardi-ai.com
     environment: production
+- targets:
+  - https://web.kardi-ai.com/static/favicon.e68d001a9fb1.svg
+  labels:
+    target: https://web.kardi-ai.com/favicon.svg
+    environment: productioncc
 - targets:
   - https://pay.kardi-ai.com
   labels:

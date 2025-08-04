@@ -35,7 +35,7 @@
     src: "{{ item }}"
     dest: "/tmp/grafana_dashboards/"
   with_fileglob:
-    - "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
+    - "{{ playbook_dir }}/../inventory/group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
   tags: grafana_dashboards
 
 - name: Import dashboards into Grafana
@@ -47,5 +47,5 @@
     overwrite: true
     path: "/tmp/grafana_dashboards/{{ item | basename }}"
   with_fileglob:
-    - "{{ playbook_dir }}/../group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
+    - "{{ playbook_dir }}/../inventory/group_files/{{ group_names[0] }}/grafana_dashboards/*.json"
   tags: grafana_dashboards

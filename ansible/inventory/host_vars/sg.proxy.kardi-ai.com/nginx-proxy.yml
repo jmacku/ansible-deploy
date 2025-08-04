@@ -1,0 +1,5 @@
+#kardiai_proxy_hosts: "pay.kardi-ai.com"
+kardiai_ssl_cert_path: "/etc/nginx/ssl/{{ inventory_hostname }}/fullchain.pem"
+kardiai_ssl_key_path: "/etc/nginx/ssl/{{ inventory_hostname }}/privkey.pem"
+# internal loadbalancer DNS
+upstream: "k8s-ingressi-ingressi-feadfdf02b-944feeca46f8d73f.elb.eu-central-1.amazonaws.com"

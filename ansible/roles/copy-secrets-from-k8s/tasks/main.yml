@@ -1,4 +1,4 @@
-- name: Get SSL certificates from Kubernetes secrets
+- name: Grab SSL certificates from Kubernetes secrets
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
@@ -8,15 +8,15 @@
   register: ssl_secrets
   delegate_to: localhost
   become: false
-  run_once: true
+#  run_once: true
   loop: "{{ ssl_secret_list }}"
   tags: [nginx, ssl-certs]
 
-- name: debug
-  debug:
-    msg: "{{ ssl_secrets }}"
+#- name: debug
+#  debug:
+#    msg: "{{ ssl_secrets }}"
 
-- name: Ensure ssl paths exist
+- name: Ensure ssl paths exist on proxy
   ansible.builtin.file:
     path: "/etc/nginx/ssl/{{ item.cert_name | default(item.name) }}"
     state: directory
@@ -26,7 +26,7 @@
   loop: "{{ ssl_secret_list }}"
   tags: [nginx, ssl-certs]
 
-- name: Copy SSL certificates from Kubernetes secrets
+- name: Copy SSL certificates to proxy
   ansible.builtin.copy:
     content: "{{ ssl_secrets.results[ansible_loop.index0].resources[0].data['tls.crt'] | b64decode }}"
     dest: "/etc/nginx/ssl/{{ item.cert_name | default(item.name) }}/fullchain.pem"
@@ -40,7 +40,7 @@
   notify: restart nginx
   when: ssl_secrets.results[ansible_loop.index0].resources | length > 0
 
-- name: Copy SSL private keys from Kubernetes secrets
+- name: Copy SSL private keys to proxy
   ansible.builtin.copy:
     content: "{{ ssl_secrets.results[ansible_loop.index0].resources[0].data['tls.key'] | b64decode }}"
     dest: "/etc/nginx/ssl/{{ item.cert_name | default(item.name) }}/privkey.pem"
@@ -54,7 +54,7 @@
   notify: restart nginx
   when: ssl_secrets.results[ansible_loop.index0].resources | length > 0
 
-- name: Copy CA certificates from Kubernetes secrets (if present)
+- name: Copy CA certificates to proxy (if present)
   ansible.builtin.copy:
     content: "{{ ssl_secrets.results[ansible_loop.index0].resources[0].data['ca.crt'] | b64decode }}"
     dest: "/etc/nginx/ssl/{{ item.cert_name | default(item.name) }}/ca.pem"
@@ -72,7 +72,7 @@
 
 - name: Generate nginx config for each certificate
   ansible.builtin.template:
-    src: "{{ playbook_dir }}/../group_files/_services/kardi-proxy/kardi-proxy.conf.j2"
+    src: "{{ playbook_dir }}/../inventory/group_files/_services/kardi-proxy/kardi-proxy.conf.j2"
     dest: "/etc/nginx/conf.d/{{ item.cert_name | default(item.name) }}.conf"
     owner: "{{ nginx_user }}"
     group: "{{ nginx_group }}"
