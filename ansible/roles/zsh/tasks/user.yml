@@ -1,0 +1,26 @@
+- name: Ensure Zsh is the default shell for {{ zsh_user }}
+  ansible.builtin.user:
+    name: "{{ zsh_user }}"
+    shell: "{{ zsh_default_shell }}"
+
+- name: Create .zshrc from template
+  ansible.builtin.template:
+    src: zshrc.j2
+    dest: "/home/{{ zsh_user }}/.zshrc"
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: "0644"
+
+- name: Install Oh My Zsh for {{ zsh_user }}
+  ansible.builtin.shell: |
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  args:
+    chdir: "/home/{{ zsh_user }}"
+    creates: "/home/{{ zsh_user }}/.oh-my-zsh"
+  become_user: "{{ zsh_user }}"
+  when: zsh_install_ohmyzsh
+
+- name: Install external Oh My Zsh plugins for {{ zsh_user }}
+  ansible.builtin.include_tasks: plugins.yml
+  when: zsh_install_ohmyzsh

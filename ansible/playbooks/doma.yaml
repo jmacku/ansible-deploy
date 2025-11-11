@@ -1,0 +1,61 @@
+---
+- name: home lab deployment
+  hosts: nuc
+  become: yes
+
+  roles:
+    - role: base
+      vars:
+        timezone: Europe/Prague
+    - role: docker
+    - role: zsh
+      vars:
+        zsh_users:
+          - jama
+        zsh_theme: crcandy
+        zsh_plugins:
+          - git
+          - docker
+          - z
+          - zsh-autosuggestions
+          - zsh-history-substring-search
+          - zsh-syntax-highlighting
+        zsh_install_ohmyzsh: true
+    - role: nginx
+
+  tasks:
+    - name: copy ha nginx config
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/host_files/{{ inventory_hostname }}/files/ha.dlab.cz.conf"
+        dest: /etc/nginx/conf.d/ha.dlab.cz.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: copy ocpp nginx config
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/host_files/{{ inventory_hostname }}/files/ocpp.dlab.cz.conf"
+        dest: /etc/nginx/conf.d/ocpp.dlab.cz.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+#    - name: Rsync file from host "{{ inventory_hostname }}" to host "{{ ansible_host }}" in one task
+#      ansible.posix.synchronize:
+#        src: /etc/letsencrypt/live/
+#        dest: /etc/letsencrypt/live/
+#        mode: pull
+#        recursive: yes
+#        rsync_opts:
+#          - "--rsync-path=rsync"
+#          - "--archive"
+#          - "--compress"
+#        become: true
+#      delegate_to: home
+##      vars:
+##        ansible_ssh_common_args: "-o ProxyJump={{ ansible_host }}"
+
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

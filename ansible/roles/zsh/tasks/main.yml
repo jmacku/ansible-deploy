@@ -1,0 +1,20 @@
+- name: Ensure Zsh is installed
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: yes
+
+- name: Ensure curl and git are installed (for Oh My Zsh)
+  ansible.builtin.apt:
+    name:
+      - curl
+      - git
+    state: present
+  when: zsh_install_ohmyzsh
+
+- name: Configure Zsh for each user
+  ansible.builtin.include_tasks: user.yml
+  loop: "{{ zsh_users }}"
+  loop_control:
+    loop_var: zsh_user
+

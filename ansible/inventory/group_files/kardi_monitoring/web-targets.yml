@@ -81,7 +81,7 @@
   - https://web.kardi-ai.com/static/favicon.e68d001a9fb1.svg
   labels:
     target: https://web.kardi-ai.com/favicon.svg
-    environment: productioncc
+    environment: production
 - targets:
   - https://pay.kardi-ai.com
   labels:

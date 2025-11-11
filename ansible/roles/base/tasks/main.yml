@@ -35,7 +35,6 @@
 - name: Install base tools
   ansible.builtin.apt:
     name:
-      - apt-transport-https
       - gpg
       - vim
       - less
@@ -60,3 +59,8 @@
     name: "{{ hostname }}"
   when: hostname != ansible_hostname
   tags: [base]
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+    hwclock: UTC

@@ -1,0 +1,16 @@
+- name: Ensure Oh My Zsh custom plugins directory exists for {{ zsh_user }}
+  ansible.builtin.file:
+    path: "/home/{{ zsh_user }}/.oh-my-zsh/custom/plugins"
+    state: directory
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0755'
+
+- name: Install external Oh My Zsh plugins for {{ zsh_user }}
+  ansible.builtin.git:
+    repo: "{{ zsh_external_plugins[item] }}"
+    dest: "/home/{{ zsh_user }}/.oh-my-zsh/custom/plugins/{{ item }}"
+    version: master
+    update: no
+  loop: "{{ zsh_plugins | select('in', zsh_external_plugins.keys()) | list }}"
+  become_user: "{{ zsh_user }}"
