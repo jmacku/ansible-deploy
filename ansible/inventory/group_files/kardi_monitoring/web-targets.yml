@@ -1,89 +1,79 @@
-## Test env
-- targets:
-  - https://api.kardi-ai.org/api/v1/general/liveness-probe
-  labels:
-    target: https://api.kardi-ai.org
-    environment: test
-- targets:
-  - https://partner.kardi-ai.org/api/v2/general/health-check
-  labels:
-    target: https://partner.kardi-ai.org
-    environment: test
-- targets:
-  - https://mb.kardi-ai.org/api/v1/general/liveness-probe
-  labels:
-    target: https://mb.kardi-ai.org
-    environment: test
-# web services
-- targets:
-  - https://web.kardi-ai.org
-  labels:
-    target: https://web.kardi-ai.org
-    environment: test
-- targets:
-  - https://web.kardi-ai.org/static/favicon.e68d001a9fb1.svg
-  labels:
-    target: https://web.kardi-ai.com/favicon.svg
-    environment: test
-- targets:
-  - https://pay.kardi-ai.org
-  labels:
-    target: https://pay.kardi-ai.org
-    environment: test
-
-## Training env
-- targets:
-  - https://api.ait.kardi-ai.org/api/v1/general/liveness-probe
-  labels:
-    target: https://api.ait.kardi-ai.org
-    environment: training
-- targets:
-  - https://mb.ait.kardi-ai.org/api/v1/general/liveness-probe
-  labels:
-    target: https://mb.ait.kardi-ai.org
-    environment: training
-# web services
-- targets:
-  - https://web.ait.kardi-ai.org
-  labels:
-    target: https://web.ait.kardi-ai.org
-    environment: training
-- targets:
-  - https://pay.ait.kardi-ai.org
-  labels:
-    target: https://pay.ait.kardi-ai.org
-    environment: training
-
-## Production
+## EU Test env
 # API services
 - targets:
-  - https://api.kardi-ai.com/api/v1/general/liveness-probe
+  - https://api.eu.kardi-ai.org/api/v1/general/liveness-probe
   labels:
-    target: https://api.kardi-ai.com
+    environment: test
+- targets:
+  - https://partner.eu.kardi-ai.org/api/v2/general/health-check
+  labels:
+    environment: test
+- targets:
+  - https://mb.eu.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    environment: test
+# web services
+- targets:
+  - https://web.eu.kardi-ai.org
+  labels:
+    environment: test
+- targets:
+  - https://web.eu.kardi-ai.org/static/favicon.e68d001a9fb1.svg
+  labels:
+    environment: test
+- targets:
+  - https://pay.eu.kardi-ai.org
+  labels:
+    environment: test
+## EU Training env
+# API services
+- targets:
+  - https://api.eu.ait.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    environment: training
+- targets:
+  - https://mb.eu.ait.kardi-ai.org/api/v1/general/liveness-probe
+  labels:
+    environment: training
+# web services
+- targets:
+  - https://web.eu.ait.kardi-ai.org
+  labels:
+    environment: training
+- targets:
+  - https://pay.eu.ait.kardi-ai.org
+  labels:
+    environment: training
+## EU Production
+# API services
+- targets:
+  - https://api.eu.kardi-ai.com/api/v1/general/liveness-probe
+  labels:
     environment: production
 - targets:
-  - https://partner.kardi-ai.com/api/v2/general/health-check
+  - https://partner.eu.kardi-ai.com/api/v2/general/health-check
   labels:
-    target: https://partner.kardi-ai.com
     environment: production
 - targets:
-  - https://mb.kardi-ai.com/api/v1/general/liveness-probe
+  - https://mb.eu.kardi-ai.com/api/v1/general/liveness-probe
   labels:
-    target: https://mb.kardi-ai.com
     environment: production
 # web services
 - targets:
-  - https://web.kardi-ai.com
+  - https://web.eu.kardi-ai.com
   labels:
-    target: https://web.kardi-ai.com
     environment: production
 - targets:
-  - https://web.kardi-ai.com/static/favicon.e68d001a9fb1.svg
+  - https://web.eu.kardi-ai.com/static/favicon.e68d001a9fb1.svg
   labels:
-    target: https://web.kardi-ai.com/favicon.svg
     environment: production
 - targets:
-  - https://pay.kardi-ai.com
+  - https://pay.eu.kardi-ai.com
   labels:
-    target: https://pay.kardi-ai.com
     environment: production
+## UAE Production
+# API services
+- targets:
+  - https://api.ae.kardi-ai.com/api/v1/general/liveness-probe
+  labels:
+    environment: "production UAE"

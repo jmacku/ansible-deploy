@@ -99,6 +99,16 @@
   when: blackbox_targets_file is defined
   tags: prometheus-config
 
+- name: Copy Alert rules
+  ansible.builtin.copy:
+    src: "{{ alertmanager_rules_file }}" # Cesta na tvém lokálním stroji
+    dest: "{{ prometheus_install_path }}/alertmanager_rules.yml"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: '0644'
+  notify: restart prometheus
+  when: alertmanager_enabled | default(false)
+
 - name: chown Prometheus files
   ansible.builtin.file:
     path: "{{ prometheus_install_path }}"

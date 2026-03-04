@@ -1,0 +1,6 @@
+---
+alertmanager_version: "v0.31.1"
+alertmanager_dir: "/opt/alertmanager"
+## je ulozeno ve vaultu, ale pro přehlednost je to tady jako defaultní hodnota, která se přepíše při načítání proměnných z vaultu
+slack_webhook_url_production: "https://hooks.slack.com/services/xxx/yyy/zzz"  # Replace with your actual Slack webhook URL
+slack_channel_production: "#server-monitoring"

@@ -1,19 +1,16 @@
 global:
-
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-
+        - targets: ['localhost:9093']
 rule_files:
-
+  - "alertmanager_rules.yml"
 scrape_configs:
   - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:9090"]
         labels:
           app: "prometheus"
-
   - job_name: 'blackbox'
     scrape_interval: 20s
     scrape_timeout: 10s
@@ -21,10 +18,20 @@ scrape_configs:
     params:
       module: [http_2xx]
     relabel_configs:
+      # Pass the URL as the target for blackbox exporter
       - source_labels: [__address__]
         target_label: __param_target
+      # Extract domain from full URL for cleaner dashboards/alerts
+      # Transforms "https://api.eu.kardi-ai.org/api/v1/general/liveness-probe" 
+      # into "api.eu.kardi-ai.org"
       - source_labels: [__param_target]
+        regex: 'https?://([^/:]+).*'
+        replacement: '${1}'
+        target_label: domain
+      # Set instance label to domain (shows in alerts/dashboards)
+      - source_labels: [domain]
         target_label: instance
+      # Point to blackbox exporter
       - target_label: __address__
         replacement: localhost:9115
     file_sd_configs:

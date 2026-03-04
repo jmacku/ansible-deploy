@@ -1,0 +1,30 @@
+---
+- name: Vytvořit složky pro Alertmanager
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777' # Alertmanager běží uvnitř kontejneru pod userem 'nobody', 0777 zajistí, že tam může zapisovat data
+  loop:
+    - "{{ alertmanager_dir }}"
+    - "{{ alertmanager_dir }}/data"
+
+- name: Vygenerovat konfiguraci Alertmanageru
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ alertmanager_dir }}/alertmanager.yml"
+    mode: '0644'
+  notify: Restart Alertmanager
+
+- name: Spustit kontejner Alertmanager
+  community.docker.docker_container:
+    name: alertmanager
+    image: "prom/alertmanager:{{ alertmanager_version }}"
+    state: started
+    restart_policy: unless-stopped
+    network_mode: host # Poběží přímo na portu 9093 hostitele, stejně jako Prometheus a Grafana
+    volumes:
+      - "{{ alertmanager_dir }}/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"
+      - "{{ alertmanager_dir }}/data:/alertmanager:rw"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"

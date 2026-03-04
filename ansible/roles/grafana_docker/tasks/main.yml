@@ -30,6 +30,18 @@
     state: present
   tags: grafana_datasource
 
+- name: Add Alertmanager datasource to Grafana
+  community.grafana.grafana_datasource:
+    grafana_url: "http://localhost:3000"
+    grafana_user: "{{ grafana_env.GF_SECURITY_ADMIN_USER }}"
+    grafana_password: "{{ grafana_env.GF_SECURITY_ADMIN_PASSWORD }}"
+    name: "Alertmanager"
+    ds_type: "alertmanager"
+    ds_url: "http://localhost:9093"
+    state: present
+  tags: grafana_datasource
+  when: alertmanager_enabled
+
 - name: Copy Grafana dashboards to remote host
   ansible.builtin.copy:
     src: "{{ item }}"

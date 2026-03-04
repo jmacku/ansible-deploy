@@ -8,3 +8,5 @@ grafana_volumes:
   - grafana_data:/var/lib/grafana
 
 grafana_restart_policy: unless-stopped
+
+alertmanager_enable: false
