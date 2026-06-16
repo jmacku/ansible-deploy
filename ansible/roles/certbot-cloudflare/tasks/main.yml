@@ -1,0 +1,66 @@
+- name: Install Certbot and Cloudflare plugin
+  apt:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: yes
+
+- name: Create Cloudflare credentials file
+  copy:
+    dest: "{{ cloudflare_ini_path }}"
+    content: |
+      dns_cloudflare_api_token = {{ cloudflare_api_token }}
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Gather existing cert domains (flat list)
+  command: certbot certificates
+  register: certbot_certificates
+  changed_when: false
+
+- name: Parse existing domains from certbot output (tolerant to leading spaces)
+  set_fact:
+    existing_domains_list: >-
+      {{
+        certbot_certificates.stdout
+        | regex_findall('^[ ]*Domains:[ ]*(.+)$', multiline=True)
+        | map('regex_replace', '[ ]+', ' ')
+        | map('trim')
+        | map('split', ' ')
+        | list | flatten | reject('equalto','') | unique | list
+      }}
+
+- name: Normalize desired domains to a flat list
+  set_fact:
+    desired_domains_list: "{{ (cert_domains | flatten | select('string') | list) | unique }}"
+
+- name: Compute domains to issue
+  set_fact:
+    domains_to_issue: "{{ desired_domains_list | difference(existing_domains_list) }}"
+
+- name: Skip issuance if nothing to do
+  meta: noop
+  when: domains_to_issue | length == 0
+
+- name: Obtain certificate using Certbot (DNS-01 challenge)
+  command: >
+    certbot certonly
+    --dns-cloudflare
+    --dns-cloudflare-credentials {{ cloudflare_ini_path }}
+    {% for domain in domains_to_issue %}-d {{ domain }} {% endfor %}
+    --preferred-challenges dns-01
+    --agree-tos
+    --non-interactive
+    --email {{ cert_email }}
+  register: certbot_result
+  changed_when: "'Congratulations' in certbot_result.stdout"
+
+- name: Optionally configure Nginx with the certificate
+  command: >
+    certbot --nginx
+    --dns-cloudflare
+    --dns-cloudflare-credentials {{ cloudflare_ini_path }}
+    {% for domain in cert_domains %}-d {{ domain }} {% endfor %}
+  when: certbot_result is changed

@@ -1,0 +1,19 @@
+---
+- name: Spustit kontejner node_exporter
+  community.docker.docker_container:
+    name: node_exporter
+    image: "quay.io/prometheus/node-exporter:latest"
+    state: started
+    restart_policy: unless-stopped
+    network_mode: host
+    pid_mode: host
+    ## expose only on localhost
+    exposed_ports:
+      - 9100
+    volumes:
+#      - "{{ node_exporter_dir }}/data:/data"
+      - '/:/host:ro,rslave'
+    command:
+      - '--path.rootfs=/host'
+#      - '--no-collector.filesystem'
+  notify: Restart node_exporter

@@ -2,3 +2,5 @@
 grafana_allowed_ips:
   - 77.240.104.25
   - 18.193.52.239
+
+grafana_env: "{{ default_grafana_env | default({}) | combine(host_grafana_env) | default({}) | combine(secret_grafana_env) | default({}) }}"

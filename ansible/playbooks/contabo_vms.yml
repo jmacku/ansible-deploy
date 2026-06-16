@@ -4,10 +4,11 @@
   become: yes
 
   roles:
-    - fail2ban
-    - docker
-    - nginx
-    - certbot-nginx
+#    - fail2ban
+#    - docker
+#    - nginx
+#    - certbot-nginx
+    - certbot
 #    - wireguard
 
 #  pre_tasks:

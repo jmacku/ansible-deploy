@@ -2,6 +2,14 @@ upstream grafana {
     server 127.0.0.1:3000;
 }
 
+upstream alertmanager {
+    server 127.0.0.1:9093;
+}
+
+upstream prometheus {
+    server 127.0.0.1:9090;
+}
+
 server {
     listen 80;
     server_name "{{ inventory_hostname }}";
@@ -23,9 +31,67 @@ server {
     # ----------------------------------------------------
     # Serve everything at / as if it were /status/example-com
     # ----------------------------------------------------
-    location / {
+    location /grafana {
         # proxy_pass with a URI; nginx will strip the leading “/”
-        proxy_pass         http://grafana/;
+        proxy_pass         http://grafana;
+        #proxy_http_version 1.1;
+
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # WebSocket support (for live updates)
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+
+        proxy_read_timeout  90s;
+        proxy_send_timeout  90s;
+
+        {% if grafana_allowed_ips is defined -%}
+        # allow only for specific IPs
+        {% for ip in grafana_allowed_ips -%}
+        allow {{ ip }};
+        {% endfor -%}
+        {% else -%}
+        # grafana_allowed_ips node defined, allowing only for localhost
+        allow 127.0.0.1;
+        {% endif -%}
+        deny all;
+    }
+
+    location /alertmanager {
+        # proxy_pass with a URI; nginx will strip the leading “/”
+        proxy_pass         http://alertmanager;
+        #proxy_http_version 1.1;
+
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+
+        # WebSocket support (for live updates)
+        proxy_set_header   Upgrade           $http_upgrade;
+        proxy_set_header   Connection        "upgrade";
+
+        proxy_read_timeout  90s;
+        proxy_send_timeout  90s;
+
+        {% if grafana_allowed_ips is defined -%}
+        # allow only for specific IPs
+        {% for ip in grafana_allowed_ips -%}
+        allow {{ ip }};
+        {% endfor -%}
+        {% else -%}
+        # grafana_allowed_ips node defined, allowing only for localhost
+        allow 127.0.0.1;
+        {% endif -%}
+        deny all;
+    }
+
+    location /prometheus {
+        # proxy_pass with a URI; nginx will strip the leading “/”
+        proxy_pass         http://prometheus;
         #proxy_http_version 1.1;
 
         proxy_set_header   Host              $host;

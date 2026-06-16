@@ -1,0 +1,66 @@
+### EU Test env
+#- targets:
+#  ## API services
+#  - https://api.eu.kardi-ai.org/api/v1/general/liveness-probe
+#  - https://partner.eu.kardi-ai.org/api/v2/general/health-check
+#  - https://mb.eu.kardi-ai.org/api/v1/general/liveness-probe
+#  ## web services
+#  #- https://web.eu.kardi-ai.org
+#  - https://web.eu.kardi-ai.org/static/favicon.e68d001a9fb1.svg
+#  - https://pay.eu.kardi-ai.org
+#  labels:
+#    environment: "Test EU"
+#
+### EU Training env
+#- targets:
+#  ## API services
+#  - https://api.eu.ait.kardi-ai.org/api/v1/general/liveness-probe
+#  - https://mb.eu.ait.kardi-ai.org/api/v1/general/liveness-probe
+#  ## web services
+#  #- https://web.eu.ait.kardi-ai.org
+#  - https://web.eu.ait.kardi-ai.org/static/favicon.e68d001a9fb1.svg
+#  - https://pay.eu.ait.kardi-ai.org
+#  labels:
+#    environment: "Training EU"
+
+## Global Production
+- targets:
+  ## API services
+  - https://api.kardi-ai.com/api/v1/general/liveness-probe
+  - https://partner.kardi-ai.com/api/v2/general/health-check
+  - https://mb.kardi-ai.com/api/v1/general/liveness-probe
+  ## web services
+  #- https://web.kardi-ai.com
+  - https://web.kardi-ai.com/static/favicon.e68d001a9fb1.svg
+  - https://pay.kardi-ai.com
+  labels:
+    environment: "Production Global"
+    reporter: "Singapore"
+
+### UAE Production
+#- targets:
+#  ## API services
+#  - https://api.ae.kardi-ai.com/api/v1/general/liveness-probe
+#  - https://partner.ae.kardi-ai.com/api/v2/general/health-check
+#  - https://mb.ae.kardi-ai.com/api/v1/general/liveness-probe
+#  ## web services
+#  #- https://web.ae.kardi-ai.com
+#  - https://web.ae.kardi-ai.com/static/favicon.e68d001a9fb1.svg
+#  - https://pay.ae.kardi-ai.com
+#  labels:
+#    environment: "Production UAE"
+#    reporter: "Singapore"
+#
+### UAE Test
+#- targets:
+#    ## API services
+#    - https://api.ae.test.kardi-ai.org/api/v1/general/liveness-probe
+#    - https://partner.ae.test.kardi-ai.org/api/v2/general/health-check
+#    - https://mb.ae.test.kardi-ai.org/api/v1/general/liveness-probe
+#    ## web services
+#    #- https://web.ae.test.kardi-ai.org
+#    - https://web.ae.test.kardi-ai.org/static/favicon.e68d001a9fb1.svg
+#    - https://pay.ae.test.kardi-ai.org
+#  labels:
+#    environment: "Test UAE"
+#    reporter: "Singapore"

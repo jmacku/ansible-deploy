@@ -26,10 +26,11 @@
     filename: docker
     state: present
     update_cache: yes
+#    become: yes
 
-- name: Update APT cache
-  apt:
-    update_cache: yes
+#- name: Update APT cache
+#  apt:
+#    update_cache: yes
 
 - name: Install Docker CE packages
   apt:

@@ -1,1 +1,4 @@
 timezone: Europe/Prague
+expose_tcp_ports:
+  - 80
+  - 443

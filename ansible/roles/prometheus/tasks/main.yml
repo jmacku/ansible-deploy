@@ -82,8 +82,8 @@
   ansible.builtin.copy:
     src: "{{ prometheus_config_file }}"
     dest: "{{ prometheus_install_path }}/prometheus.yml"
-    owner: root
-    group: root
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
     mode: '0644'
   notify: restart prometheus
   tags: prometheus-config

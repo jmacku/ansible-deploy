@@ -5,9 +5,13 @@
 
   roles:
     - base
+    - firewall
     - docker
+    - node_exporter
     - blackbox_exporter
     - prometheus
-    - grafana_docker
+    - alertmanager
+    - grafana
     - nginx
+    - nginx-conf
     - certbot-nginx

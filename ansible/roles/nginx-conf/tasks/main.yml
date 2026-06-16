@@ -6,7 +6,7 @@
     owner: root
     group: root
     mode: '0644'
-  loop: "{{ lookup('fileglob', role_path + '/files/conf.d/*.conf', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', inventory_dir + '/host_files' + inventory_hostname + '/nginx/conf.d/*.conf', wantlist=True) }}"
   notify: restart nginx
   tags: nginx-config
 
@@ -20,6 +20,17 @@
 #  loop: "{{ lookup('fileglob', role_path + '/files/nginx.conf', wantlist=True) }}"
 #  notify: restart nginx
 #  tags: nginx-config
+
+- name: Template specific Nginx config files to conf.d
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/{{ item | basename | regex_replace('.j2$', '') }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', inventory_dir + '/group_files/' + group_names[0] + '/nginx/conf.d/*.conf.j2', wantlist=True) }}"
+  when: group_names[0] is defined
+  notify: restart nginx
 
 - name: Ensure Nginx is enabled and running
   ansible.builtin.systemd:

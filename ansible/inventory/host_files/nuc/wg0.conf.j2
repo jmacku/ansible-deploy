@@ -1,0 +1,12 @@
+[Interface]
+Address = {{ wireguard_address }}
+PrivateKey = {{ wireguard_private_key }}
+MTU = 1280
+DNS = 1.1.1.1, 1.0.0.1
+PostUp = ping -c1 100.64.0.1
+
+[Peer]
+PublicKey = 2teRgXf+OQvqv08MwHFRpwMQiyyMhLNGGbbXW/tjM1M=
+AllowedIPs = 100.64.0.0/10
+Endpoint = {{ wireguard_server }}:51820
+PersistentKeepalive = 25

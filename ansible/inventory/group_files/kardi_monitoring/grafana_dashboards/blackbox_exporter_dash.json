@@ -137,11 +137,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_http_status_code{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_http_status_code{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "B"
         }
@@ -239,11 +239,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_success{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_success{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -342,11 +342,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_http_status_code{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_http_status_code{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -429,11 +429,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_http_version{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_http_version{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -538,11 +538,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_duration_seconds{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_duration_seconds{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -629,11 +629,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(probe_duration_seconds{target=~\"$target\", environment=~\"$environment\"}) by (target)",
+          "expr": "avg(probe_duration_seconds{domain=~\"$target\", environment=\"$environment\"}) by (target)",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -721,11 +721,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(probe_dns_lookup_time_seconds{target=~\"$target\", environment=~\"$environment\"}) by (target)",
+          "expr": "avg(probe_dns_lookup_time_seconds{domain=~\"$target\", environment=\"$environment\"}) by (target)",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -808,11 +808,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_ip_protocol{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_ip_protocol{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -878,32 +878,7 @@
           },
           "unit": "s"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "https://web.kardi-ai.org - tls"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -940,11 +915,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_http_duration_seconds{target=~\"$target\", phase=~\"$phase\", environment=~\"$environment\"}",
+          "expr": "probe_http_duration_seconds{domain=~\"$target\", phase=~\"$phase\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}} - {{ phase }}",
+          "legendFormat": "{{domain}} - {{ phase }}",
           "range": true,
           "refId": "B"
         }
@@ -1043,11 +1018,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_ssl_earliest_cert_expiry{target=~\"$target\", environment=~\"$environment\"} - time()",
+          "expr": "probe_ssl_earliest_cert_expiry{domain=~\"$target\", environment=\"$environment\"} - time()",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -1145,11 +1120,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_http_ssl{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_http_ssl{domain=~\"$target\", environment=\"$environment\"}",
           "format": "time_series",
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{target}}",
+          "legendFormat": "{{domain}}",
           "range": true,
           "refId": "A"
         }
@@ -1237,7 +1212,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "probe_tls_version_info{target=~\"$target\", environment=~\"$environment\"}",
+          "expr": "probe_tls_version_info{domain=~\"$target\", environment=\"$environment\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1372,13 +1347,13 @@
             "$__all"
           ]
         },
-        "definition": "label_values(probe_success, target)",
+        "definition": "label_values(probe_success, domain)",
         "includeAll": true,
         "multi": true,
         "name": "target",
         "options": [],
         "query": {
-          "query": "label_values(probe_success, target)",
+          "query": "label_values(probe_success, domain)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,

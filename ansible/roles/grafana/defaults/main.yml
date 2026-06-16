@@ -1,0 +1,21 @@
+grafana_container_name: grafana
+grafana_image: grafana/grafana:latest
+
+grafana_ports:
+  - "127.0.0.1:3000:3000"
+
+grafana_data_dir: /var/lib/grafana
+
+grafana_volumes:
+  - grafana_data:/var/lib/grafana
+
+grafana_restart_policy: unless-stopped
+
+alertmanager_enable: false
+
+default_grafana_env:
+#  GF_SECURITY_ADMIN_USER: admin
+#  GF_SECURITY_ADMIN_PASSWORD: admin
+  GF_SERVER_ROOT_URL: http://localhost:3000
+  GF_SERVER_SERVE_FROM_SUB_PATH: "false"
+  GF_SERVER_ENABLE_GZIP: "true"

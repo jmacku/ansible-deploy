@@ -1,23 +1,23 @@
 ---
-- name: check "/etc/letsencrypt/options-ssl-nginx.conf" size
-  ansible.builtin.stat:
-    path: "/etc/letsencrypt/options-ssl-nginx.conf"
-  register: letsencrypt_ssl_options_stat
-  tags: [certbot, certbot-files]
-
-- name: Remove existing Let's Encrypt files
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  when: >
-    letsencrypt_ssl_options_stat.stat.exists 
-    and letsencrypt_ssl_options_stat.stat.size == 0
-  tags: [certbot, certbot-files]
-  with_items:
-    - "/etc/letsencrypt/options-ssl-nginx.conf"
-    - "/etc/letsencrypt/live/{{ certbot_domains[0] }}"
-  register: letsencrypt_files_removed
-  ignore_errors: true
+#- name: check "/etc/letsencrypt/options-ssl-nginx.conf" size
+#  ansible.builtin.stat:
+#    path: "/etc/letsencrypt/options-ssl-nginx.conf"
+#  register: letsencrypt_ssl_options_stat
+#  tags: [certbot, certbot-files]
+#
+#- name: Remove existing Let's Encrypt files
+#  ansible.builtin.file:
+#    path: "{{ item }}"
+#    state: absent
+#  when: >
+#    letsencrypt_ssl_options_stat.stat.exists
+#    and letsencrypt_ssl_options_stat.stat.size == 0
+#  tags: [certbot, certbot-files]
+#  with_items:
+#    - "/etc/letsencrypt/options-ssl-nginx.conf"
+#    - "/etc/letsencrypt/live/{{ certbot_domains[0] }}"
+#  register: letsencrypt_files_removed
+#  ignore_errors: true
 
 - name: Install Certbot and Nginx plugin
   ansible.builtin.apt:
@@ -71,17 +71,17 @@
   when: nginx_conf_files.files | length > 0
   tags: [certbot, certbot-files]
 
-- name: list content of nginx_conf_files
-  ansible.builtin.debug:
-    var: nginx_conf_files.files
-  when: nginx_conf_files.files | length > 0
-  tags: [certbot, certbot-files]
+#- name: list content of nginx_conf_files
+#  ansible.builtin.debug:
+#    var: nginx_conf_files.files
+#  when: nginx_conf_files.files | length > 0
+#  tags: [certbot, certbot-files]
 
-- name: list content of nginx_conf_files
-  ansible.builtin.debug:
-    var: nginx_conf_files_with_le_path
-  when: nginx_conf_files_with_le_path
-  tags: [certbot, certbot-files]
+#- name: list content of nginx_conf_files
+#  ansible.builtin.debug:
+#    var: nginx_conf_files_with_le_path
+#  when: nginx_conf_files_with_le_path
+#  tags: [certbot, certbot-files]
 
 - name: Replace certificate path in nginx config
   ansible.builtin.replace:

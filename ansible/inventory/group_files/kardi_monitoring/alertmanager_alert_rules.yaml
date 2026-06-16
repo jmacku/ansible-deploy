@@ -1,0 +1,33 @@
+groups:
+  - name: blackbox_alerts
+    rules:
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "{{ $labels.instance }} is unreachable"
+          #description: "Blackbox exporter nemůže načíst {{ $labels.instance }}. Buď neodpovídá, nebo vrací chybu."
+
+      - alert: EndpointSlow
+        expr: probe_duration_seconds > 5 and probe_success == 1
+        for: 10m
+        labels:
+          severity: warning
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "Response of {{ $labels.instance }} is slow"
+          description: "HTTP response of {{ $labels.target }} is taking longer than 5 seconds. Check resources usage or network conditions closer."
+
+      - alert: SslCertExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 14
+        for: 1h
+        labels:
+          severity: info
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "SSL certificate will expire soon"
+          description: "Validity of SSL certificate for {{ $labels.instance }} will expire in 14 days. Please check renewal process."
+

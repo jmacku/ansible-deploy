@@ -48,6 +48,7 @@
     update_cache: yes
   when: ansible_lsb.id in ['Debian', 'Ubuntu']
   tags: [base]
+  become: yes
 
 - name: Convert hostname to lowercase and replace dots with dashes
   ansible.builtin.set_fact:
@@ -57,7 +58,7 @@
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ hostname }}"
-  when: hostname != ansible_hostname
+  when: hostname != inventory_hostname
   tags: [base]
 
 - name: Set timezone

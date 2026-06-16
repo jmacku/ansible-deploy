@@ -1,0 +1,69 @@
+#- name: Deprovision legacy Blackbox Exporter service
+#  block:
+#    - name: Stop and disable legacy systemd service
+#      ansible.builtin.systemd:
+#        name: blackbox_exporter
+#        state: stopped
+#        enabled: no
+#      failed_when: false # Ignoruje chybu, pokud služba vůbec neexistovala
+#
+#    - name: Remove legacy systemd unit file
+#      ansible.builtin.file:
+#        path: /etc/systemd/system/blackbox_exporter.service
+#        state: absent
+#
+#    - name: Reload systemd daemon
+#      ansible.builtin.systemd:
+#        daemon_reload: yes
+#
+#    - name: Remove legacy installation directory
+#      ansible.builtin.file:
+#        path: "{{ blackbox_exporter_install_path }}"
+#        state: absent
+#      when: blackbox_exporter_install_path is defined
+#
+#    - name: Remove legacy user (optional)
+#      ansible.builtin.user:
+#        name: "{{ blackbox_exporter_user | default('blackbox_exporter') }}"
+#        state: absent
+#        remove: yes
+#      failed_when: false
+
+
+################# Docker container setup #################
+#- name: Ensure configuration directory exists
+#  ansible.builtin.file:
+#    path: "{{ blackbox_exporter_config_dir | default('/opt/blackbox_exporter') }}"
+#    state: directory
+#    owner: root
+#    group: root
+#    mode: '0755'
+#
+#- name: Copy Blackbox Exporter config
+#  ansible.builtin.template:
+#    src: blackbox.yml.j2
+#    dest: "{{ blackbox_exporter_config_dir | default('/opt/blackbox_exporter') }}/blackbox.yml"
+#    owner: root
+#    group: root
+#    mode: '0644'
+#  register: config_file
+
+- name: Pull Blackbox Exporter image
+  community.docker.docker_image:
+    name: "prom/blackbox-exporter:v{{ blackbox_exporter_version }}"
+    source: pull
+
+- name: Run Blackbox Exporter container
+  community.docker.docker_container:
+    name: blackbox_exporter
+    image: "prom/blackbox-exporter:v{{ blackbox_exporter_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ blackbox_exporter_port | default('9115') }}:9115"
+#    volumes:
+#      - "{{ blackbox_exporter_config_dir | default('/opt/blackbox_exporter') }}/blackbox.yml:/opt/blackbox_exporter/config.yml:ro"
+#    command:
+#      - "--config.file=/opt/blackbox_exporter/config.yml"
+#    restart: "{{ config_file.changed }}"
+    network_mode: host

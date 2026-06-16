@@ -10,7 +10,8 @@ ExecStart={{ prometheus_install_path }}/prometheus \
   --config.file={{ prometheus_install_path }}/prometheus.yml \
   --storage.tsdb.path={{ prometheus_install_path }}/data \
   --storage.tsdb.retention.time={{ prometheus_data_retention }} \
-  --web.listen-address={{ prometheus_exposed_url }}
+  --web.external-url={{ prometheus_external_url }} \
+  --web.listen-address=localhost:9090
 Restart=always
 
 [Install]

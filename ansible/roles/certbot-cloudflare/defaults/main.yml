@@ -1,0 +1,6 @@
+cert_email: "your-email@example.com"
+cert_domains:
+  - "example.com"
+  - "www.example.com"
+cloudflare_api_token: "YOUR_CLOUDFLARE_API_TOKEN"
+cloudflare_ini_path: "/etc/letsencrypt/cloudflare.ini"

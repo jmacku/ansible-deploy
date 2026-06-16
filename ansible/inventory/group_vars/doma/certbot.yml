@@ -1,0 +1,9 @@
+cert_email: "jarekmacku+certbot@gmail.com"
+cert_domains:
+  - "ha.dlab.cz"
+  - "ocpp.dlab.cz"
+  - "mqtt.dlab.cz"
+  - "z2m.dlab.cz"
+  - "pihole.dlab.cz"
+  - "grafana.dlab.cz"
+  - "zw.dlab.cz"

@@ -1,0 +1,4 @@
+timezone: Asia/Singapore
+expose_tcp_ports:
+  - 80
+  - 443

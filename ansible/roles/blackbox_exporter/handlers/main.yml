@@ -1,6 +1,12 @@
+#- name: restart blackbox_exporter
+#  ansible.builtin.systemd:
+#    name: blackbox_exporter
+#    enabled: yes
+#    state: started
+#    daemon_reload: yes
+
 - name: restart blackbox_exporter
-  ansible.builtin.systemd:
+  community.docker.docker_container:
     name: blackbox_exporter
-    enabled: yes
     state: started
-    daemon_reload: yes
+    restart: true

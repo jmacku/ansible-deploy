@@ -1,0 +1,6 @@
+---
+# Default ports to expose (besides SSH)
+expose_tcp_ports: []
+
+# The SSH port (standard is 22, but keep it variable just in case)
+ssh_port: 22

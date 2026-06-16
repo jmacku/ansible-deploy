@@ -3,21 +3,113 @@ route:
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 3h
-  receiver: 'slack-notifications'
-
+  receiver: 'slack-production'
+  routes:
+    # ===== PRODUCTION prostředí =====
+    - match_re:
+        environment: '(Production EU|Production UAE|Website)'
+      receiver: 'slack-production'
+      group_by: ['alertname', 'instance', 'environment']
+      routes:
+        # Kritické alerty - opakuj každou hodinu
+        - match:
+            severity: critical
+          repeat_interval: 1h
+        # Warning alerty - opakuj každé 2 hodiny
+        - match:
+            severity: warning
+          repeat_interval: 4h
+        # Info alerty - opakuj každých 6 hodin
+        - match:
+            severity: info
+          repeat_interval: 8h
+    # ===== TEST prostředí =====
+    - match_re:
+        environment: '(Test EU|Test UAE)'
+      receiver: 'slack-test'
+      group_by: ['alertname', 'instance', 'environment']
+      routes:
+        # V test prostředí jsou alerty méně kritické
+        - match:
+            severity: critical
+          repeat_interval: 2h
+        - match:
+            severity: warning
+          repeat_interval: 4h
+        - match:
+            severity: info
+          repeat_interval: 12h
+    # ===== TRAINING prostředí =====
+    - match:
+        environment: 'Training EU'
+      receiver: 'slack-training'
+      group_by: ['alertname', 'instance', 'environment']
+      routes:
+        # V training prostředí jsou alerty nejméně kritické
+        - match:
+            severity: critical
+          repeat_interval: 3h
+        - match:
+            severity: warning
+          repeat_interval: 6h
+        - match:
+            severity: info
+          repeat_interval: 24h
 receivers:
-  - name: 'slack-notifications'
+  - name: 'slack-production'
     slack_configs:
-      - api_url: '{{ slack_webhook_url_production }}'
-        channel: '{{ slack_channel_production }}'
+      - api_url: '{{ alertmanager.slack_webhook_url_production }}'
+        channel: '{{ alertmanager.slack_channel_production }}'
         send_resolved: true
 {% raw %}
         title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
         text: >-
           {{ range .Alerts }}
             *Alert:* {{ .Annotations.summary }}
-            *Description:* {{ .Annotations.description }}
-            *Severity:* `{{ .Labels.severity }}`
-            *Instance:* {{ .Labels.instance }}
+              *Environment:* `{{ .Labels.environment }}`
+              *Reporter:* `{{ .Labels.reporter }}`
+              *Severity:* `{{ .Labels.severity }}`
+              *Instance:* {{ .Labels.target }}
+              {{- if .Annotations.description }}
+              *Description:* {{ .Annotations.description }}
+              {{- end }}
+          {{ end }}
+{% endraw %}
+  - name: 'slack-test'
+    slack_configs:
+      - api_url: '{{ alertmanager.slack_webhook_url_test }}'
+        channel: '{{ alertmanager.slack_channel_test }}'
+        send_resolved: true
+{% raw %}
+        title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.summary }}
+              *Environment:* `{{ .Labels.environment }}`
+              *Reporter:* `{{ .Labels.reporter }}`
+              *Severity:* `{{ .Labels.severity }}`
+              *Instance:* {{ .Labels.target }}
+              {{- if .Annotations.description }}
+              *Description:* {{ .Annotations.description }}
+              {{- end }}
+          {{ end }}
+{% endraw %}
+  - name: 'slack-training'
+    slack_configs:
+      - api_url: '{{ alertmanager.slack_webhook_url_training }}'
+        channel: '{{ alertmanager.slack_channel_training }}'
+        send_resolved: true
+{% raw %}
+        title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.summary }}
+              *Environment:* `{{ .Labels.environment }}`
+              *Reporter:* `{{ .Labels.reporter }}`
+              *Severity:* `{{ .Labels.severity }}`
+              *Instance:* {{ .Labels.target }}
+              {{- if .Annotations.description }}
+              *Description:* {{ .Annotations.description }}
+              {{- end }}
           {{ end }}
 {% endraw %}

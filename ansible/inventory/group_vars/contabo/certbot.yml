@@ -1,0 +1,3 @@
+cert_email: "jarekmacku+certbot@gmail.com"
+cert_domains:
+  - "ha.dlab.cz"

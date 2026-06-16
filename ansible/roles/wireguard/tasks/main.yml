@@ -1,7 +1,10 @@
 ---
-- name: Install WireGuard package
+- name: Install required system packages
   ansible.builtin.apt:
-    name: wireguard
+    name:
+      - wireguard
+      - wireguard-tools
+      - iputils-ping
     state: latest
     update_cache: yes
 
@@ -25,7 +28,7 @@
 
 - name: Deploy WireGuard configuration
   ansible.builtin.template:
-    src: wg0.conf.j2
+    src: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/wg0.conf.j2"
     dest: "/etc/wireguard/{{ wireguard_interface }}.conf"
     owner: root
     group: root

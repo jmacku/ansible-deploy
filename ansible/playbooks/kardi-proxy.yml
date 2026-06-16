@@ -4,6 +4,6 @@
   become: yes
 
   roles:
-    - base
-    - nginx
+#    - base
+#    - nginx_config
     - copy-secrets-from-k8s

@@ -1,0 +1,6 @@
+---
+node_exporter_version: "v1.10.0"
+node_exporter_dir: "/opt/node_exporter"
+## je ulozeno ve vaultu, ale pro přehlednost je to tady jako defaultní hodnota, která se přepíše při načítání proměnných z vaultu
+#node_exporter.slack_webhook_url_production: "https://hooks.slack.com/services/xxx/yyy/zzz"  # Replace with your actual Slack webhook URL
+#node_exporter.slack_channel_production: "#server-monitoring"
