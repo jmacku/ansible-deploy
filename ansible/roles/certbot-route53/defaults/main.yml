@@ -1,0 +1,13 @@
+---
+certbot_email: "devops@kardi-ai.com"
+certbot_staging: false
+
+# AWS credentials — store in vault
+aws_access_key_id: ""
+aws_secret_access_key: ""
+aws_region: "eu-central-1"
+
+# Nginx config directories to scan for server_name directives
+nginx_config_paths:
+  - /etc/nginx/conf.d
+  - /etc/nginx/sites-enabled

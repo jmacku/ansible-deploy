@@ -1,6 +1,6 @@
 ---
 # Email address for Let's Encrypt registrations
-certbot_email: "jaroslav.macku+certbot@kardi-ai.com"
+certbot_email: "devops+certbot@kardi-ai.com"
 
 # List of domains to obtain certificates for
 certbot_domains:

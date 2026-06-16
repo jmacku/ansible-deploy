@@ -1,0 +1,131 @@
+---
+- name: Install certbot and Route53 DNS plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-dns-route53
+    state: present
+    update_cache: yes
+
+- name: Create AWS credentials directory
+  ansible.builtin.file:
+    path: /root/.aws
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Write AWS credentials for certbot
+  ansible.builtin.copy:
+    dest: /root/.aws/credentials
+    content: |
+      [default]
+      aws_access_key_id = {{ aws_access_key_id }}
+      aws_secret_access_key = {{ aws_secret_access_key }}
+    owner: root
+    group: root
+    mode: '0600'
+
+# awscrt (used by python3-certbot-dns-route53 on Ubuntu 22+) requires region even for Route53
+- name: Write AWS config with default region
+  ansible.builtin.copy:
+    dest: /root/.aws/config
+    content: |
+      [default]
+      region = {{ aws_region }}
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Find nginx config files
+  ansible.builtin.find:
+    paths: "{{ nginx_config_paths }}"
+    patterns: "*.conf"
+    file_type: file
+  register: nginx_config_files
+  failed_when: false
+
+- name: Read nginx config files
+  ansible.builtin.slurp:
+    src: "{{ item.path }}"
+  loop: "{{ nginx_config_files.files | default([]) }}"
+  register: nginx_config_contents
+
+- name: Extract and filter domains from server_name directives
+  ansible.builtin.set_fact:
+    nginx_domains: >-
+      {{
+        nginx_config_contents.results
+        | map(attribute='content')
+        | map('b64decode')
+        | map('regex_findall', '(?m)^\s*(?!#)server_name\s+([^;]+);')
+        | flatten
+        | map('split')
+        | flatten
+        | reject('equalto', '_')
+        | reject('equalto', 'localhost')
+        | reject('match', '^\*\.')
+        | reject('match', '^\d+\.\d+\.\d+\.\d+$')
+        | reject('equalto', '')
+        | unique
+        | list
+      }}
+
+- name: Show discovered nginx domains
+  ansible.builtin.debug:
+    msg: "Domains found in nginx configs: {{ nginx_domains }}"
+
+- name: Get existing certbot certificates
+  ansible.builtin.command: certbot certificates
+  register: certbot_certificates
+  changed_when: false
+
+- name: Parse existing certified domains
+  ansible.builtin.set_fact:
+    existing_domains: >-
+      {{
+        certbot_certificates.stdout
+        | regex_findall('^[ ]*Domains:[ ]*(.+)$', multiline=True)
+        | map('regex_replace', '[ ]+', ' ')
+        | map('trim')
+        | map('split', ' ')
+        | flatten
+        | reject('equalto', '')
+        | unique
+        | list
+      }}
+
+- name: Compute domains that need new certificates
+  ansible.builtin.set_fact:
+    domains_to_issue: "{{ nginx_domains | difference(existing_domains) }}"
+
+- name: Show domains to be issued
+  ansible.builtin.debug:
+    msg: "Domains to issue certificates for: {{ domains_to_issue }}"
+
+- name: Skip if all domains already have certificates
+  ansible.builtin.meta: noop
+  when: domains_to_issue | length == 0
+
+- name: Issue certificate via DNS-01 Route53 challenge
+  ansible.builtin.command: >
+    certbot certonly
+    --dns-route53
+    {% if certbot_staging %}--staging{% endif %}
+    --agree-tos
+    --non-interactive
+    --email {{ certbot_email }}
+    -d {{ item }}
+  loop: "{{ domains_to_issue }}"
+  register: certbot_issue_result
+  changed_when: "'Congratulations' in certbot_issue_result.stdout"
+  notify: reload nginx
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+
+- name: Ensure certbot systemd timer is enabled and running
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+    state: started

@@ -4,6 +4,7 @@
   become: yes
 
   roles:
-#    - base
+    - base
+    - certbot-route53
 #    - nginx_config
-    - copy-secrets-from-k8s
+#    - copy-secrets-from-k8s
