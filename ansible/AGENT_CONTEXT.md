@@ -45,7 +45,7 @@ Variables in `group_vars` serve as defaults. Host-specific overrides live in `ho
 
 - `group_vars/kardi_monitoring/certbot.yml` → `certbot_domains: ["{{ inventory_hostname }}"]`
 - `host_vars/de.mon.kardi-ai.org/certbot.yml` → adds `uptime.{{ inventory_hostname }}` and `status.kardi-ai.com`
-- `host_vars/sg.mon.kardi-ai.org/certbot.yml` → adds only `{{ inventory_hostname }}` (same as group default, explicit override)
+- sg.mon uses the group default (no host_vars override needed)
 
 ### Plain config vs. encrypted secrets
 Unencrypted files: `certbot.yml`, `nginx.yml`, `prometheus.yml`, `base.yaml`, `nginx-proxy.yml`  
@@ -96,8 +96,8 @@ Monitoring servers previously used `certbot-nginx` (HTTP-01 challenge). Problem:
 
 AWS credentials are stored in:
 ```
-inventory/group_vars/kardi_monitoring/aws-vault.yml   ← ansible-vault encrypted
-inventory/group_vars/kardi_proxy/aws-valut.yaml       ← note: typo "valut" instead of "vault"!
+inventory/group_vars/kardi_monitoring/aws-vault.yaml   ← ansible-vault encrypted
+inventory/group_vars/kardi_proxy/aws-vault.yaml        ← ansible-vault encrypted
 ```
 
 ---
@@ -143,7 +143,8 @@ rm -rf /etc/letsencrypt/live/sg.mon.kardi-ai.org   # if the directory persists
 |---|---|
 | `inventory/hosts.ini` | All hosts and their ansible_user |
 | `inventory/group_vars/kardi_monitoring/prometheus.yml` | Versions, paths to target files |
-| `inventory/group_vars/kardi_proxy/certbot.yml` | `kardiai_proxy_hosts` list + upstream LB DNS |
+| `inventory/group_vars/kardi_proxy/certbot.yml` | references `kardiai_proxy_hosts` (defined per-host in host_vars) |
+| `inventory/group_vars/kardi_proxy/base.yaml` | shared firewall/timezone config for both proxy hosts |
 | `inventory/group_files/kardi_monitoring/prometheus.yml` | Prometheus scrape config (shared) |
 | `inventory/group_files/kardi_monitoring/alertmanager_alert_rules.yaml` | All alert rules |
 | `roles/alertmanager/templates/alertmanager.yml.j2` | Routing + Slack receivers |
@@ -152,8 +153,7 @@ rm -rf /etc/letsencrypt/live/sg.mon.kardi-ai.org   # if the directory persists
 
 ---
 
-## Typos and quirks in the repository
+## Quirks in the repository
 
-- `aws-valut.yaml` (not `aws-vault.yaml`) — typo in vault filenames for both kardi_proxy and kardi_monitoring. **Do not rename without updating all references.**
-- `vault-setup.sh` references `valut-env.sh` (typo). Both files exist.
-- Proxy `host_vars` file `nginx-proxy.yml` duplicates the `kardiai_proxy_hosts` definition — once in group_vars, once in host_vars for prod. Certbot uses the group_vars value.
+- `vault-setup.sh` references `valut-env.sh` (typo in the password helper script). Both files exist.
+- `kardiai_proxy_hosts` is defined per-host in `host_vars/<proxy>/nginx-proxy.yml` (prod and test have different domain lists). `group_vars/kardi_proxy/certbot.yml` references it as `certbot_domains: "{{ kardiai_proxy_hosts }}"` — Ansible resolves it per-host at runtime, so each proxy gets the correct cert domains.

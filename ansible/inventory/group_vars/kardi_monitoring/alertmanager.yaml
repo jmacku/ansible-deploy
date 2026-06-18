@@ -1,3 +1,4 @@
+alertmanager_enabled: true
 alertmanager_version: "v0.31.1"
 alertmanager_rules_file: "{{ playbook_dir }}/../inventory/group_files/{{ group_names[0] }}/alertmanager_alert_rules.yaml"
 alertmanager_external_url : "https://{{ inventory_hostname }}/alertmanager/"

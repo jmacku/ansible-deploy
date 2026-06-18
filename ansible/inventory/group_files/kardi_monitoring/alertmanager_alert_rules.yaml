@@ -38,6 +38,18 @@ groups:
           summary: "Disk filling up fast on {{ $labels.instance }}"
           description: "Partition {{ $labels.mountpoint }} on {{ $labels.instance }} is predicted to fill up within 24 hours based on the last 6 hours trend."
 
+  - name: node_alerts
+    rules:
+      - alert: NodeExporterDown
+        expr: up{job="node_exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "Node exporter unreachable on {{ $labels.target }}"
+          description: "Node exporter on {{ $labels.target }} has been unreachable for more than 2 minutes. Disk, CPU and memory metrics are unavailable."
+
   - name: blackbox_alerts
     rules:
       - alert: EndpointDown

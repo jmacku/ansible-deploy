@@ -1,8 +1,0 @@
-timezone: Asia/Singapore
-expose_tcp_ports:
-  - 80
-  - 443
-expose_tcp_ports_restricted:
-  - port: 9100
-    from_ips:
-      - "sg.mon.kardi-ai.org"

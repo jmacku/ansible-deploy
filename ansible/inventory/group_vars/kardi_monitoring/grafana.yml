@@ -3,4 +3,9 @@ grafana_allowed_ips:
   - 77.240.104.25
   - 18.193.52.239
 
+host_grafana_env:
+    GF_SERVER_ROOT_URL: https://{{ inventory_hostname }}/grafana
+    GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    GF_SERVER_ENABLE_GZIP: "true"
+
 grafana_env: "{{ default_grafana_env | default({}) | combine(host_grafana_env) | default({}) | combine(secret_grafana_env) | default({}) }}"

@@ -42,12 +42,12 @@ env | grep ANSIBLE
 Monitoring servers use `certbot-route53` to issue TLS certificates via Route53 DNS-01 challenge. AWS credentials must be in:
 
 ```
-inventory/group_vars/kardi_monitoring/aws-vault.yml   ← must be vault-encrypted!
+inventory/group_vars/kardi_monitoring/aws-vault.yaml   ← must be vault-encrypted!
 ```
 
 ```bash
 # Fill in credentials, then encrypt:
-ansible-vault encrypt inventory/group_vars/kardi_monitoring/aws-vault.yml
+ansible-vault encrypt inventory/group_vars/kardi_monitoring/aws-vault.yaml
 ```
 
 ---
@@ -127,6 +127,8 @@ expose_tcp_ports_restricted:  # ports restricted to specific sources
 
 UFW does not accept hostnames — the role automatically resolves them to IPs using `getent hosts` on the control node (the machine running Ansible).
 
+> Note: port 9100 has to be opened in AWS SecurityGroup as well
+
 ---
 
 ## Repository structure
@@ -138,15 +140,16 @@ ansible/
 │   ├── hosts.ini                   # host inventory
 │   ├── group_vars/
 │   │   ├── kardi_monitoring/       # shared vars for monitoring group
-│   │   └── kardi_proxy/            # shared vars for proxy group
+│   │   └── kardi_proxy/            # shared vars for proxy group (incl. base.yaml, aws-vault.yaml)
 │   ├── host_vars/
-│   │   ├── de.mon.kardi-ai.org/
-│   │   ├── sg.mon.kardi-ai.org/
-│   │   ├── proxy.sg.prod.kardi-ai.org/
-│   │   └── proxy.sg.test.kardi-ai.org/
+│   │   ├── de.mon.kardi-ai.org/    # certbot.yml (extra domains), base.yaml
+│   │   ├── sg.mon.kardi-ai.org/    # base.yaml
+│   │   ├── proxy.sg.prod.kardi-ai.org/  # nginx-proxy.yml (prod domains + upstream)
+│   │   └── proxy.sg.test.kardi-ai.org/  # nginx-proxy.yml (test domains + upstream)
 │   ├── group_files/
-│   │   ├── kardi_monitoring/       # Prometheus/Alertmanager config templates
-│   │   └── _services/              # shared nginx configs
+│   │   ├── kardi_monitoring/       # Prometheus/Alertmanager configs, group-specific nginx templates
+│   │   ├── kardi_proxy/            # proxy nginx template (kardi-proxy.conf.j2)
+│   │   └── shared/                 # nginx base config shared by all hosts
 │   └── host_files/
 │       ├── sg.mon.kardi-ai.org/    # node_exporter_targets.yml, web-targets.yml
 │       └── de.mon.kardi-ai.org/    # node_exporter_targets.yml, web-targets.yml

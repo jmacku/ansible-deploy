@@ -1,4 +1,0 @@
-host_grafana_env:
-    GF_SERVER_ROOT_URL: https://{{ inventory_hostname }}/grafana
-    GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-    GF_SERVER_ENABLE_GZIP: "true"

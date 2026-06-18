@@ -1,0 +1,385 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "datasource", "uid": "grafana"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Node filesystem disk usage — current state and trends",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": ""},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "line"}
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green"},
+              {"color": "orange", "value": 80},
+              {"color": "red", "value": 90}
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {"hideZeros": false, "mode": "multi", "sort": "desc"}
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "(1 - node_filesystem_avail_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"} / node_filesystem_size_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}) * 100",
+          "legendFormat": "{{target}} — {{mountpoint}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Disk Usage % over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": ""},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "custom": {
+            "align": "auto",
+            "cellOptions": {"type": "auto"},
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green"},
+              {"color": "orange", "value": 80},
+              {"color": "red", "value": 90}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Usage %"},
+            "properties": [
+              {"id": "unit", "value": "percent"},
+              {"id": "decimals", "value": 1},
+              {"id": "custom.cellOptions", "value": {"type": "color-background"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Available"},
+            "properties": [
+              {"id": "unit", "value": "bytes"},
+              {"id": "custom.cellOptions", "value": {"type": "color-text"}},
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"color": "red"},
+                    {"color": "orange", "value": 5368709120},
+                    {"color": "green", "value": 10737418240}
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Total"},
+            "properties": [
+              {"id": "unit", "value": "bytes"},
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "text"}},
+              {"id": "custom.width", "value": 110}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 8},
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false},
+        "showHeader": true,
+        "sortBy": [{"desc": true, "displayName": "Usage %"}]
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "(1 - node_filesystem_avail_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"} / node_filesystem_size_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}) * 100",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "node_filesystem_avail_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "node_filesystem_size_bytes{target=~\"$target\", mountpoint=~\"$mountpoint\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "C"
+        }
+      ],
+      "title": "Current Disk State",
+      "transformations": [
+        {"id": "merge", "options": {}},
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true,
+              "reporter": true
+            },
+            "renameByName": {
+              "Value #A": "Usage %",
+              "Value #B": "Available",
+              "Value #C": "Total",
+              "environment": "Environment",
+              "fstype": "FS Type",
+              "mountpoint": "Mountpoint",
+              "target": "Host"
+            },
+            "indexByName": {
+              "Host": 0,
+              "Mountpoint": 1,
+              "Usage %": 2,
+              "Available": 3,
+              "Total": 4,
+              "FS Type": 5,
+              "Environment": 6
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": ""},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green"},
+              {"color": "orange", "value": 80},
+              {"color": "red", "value": 90}
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 8},
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "max((1 - node_filesystem_avail_bytes{target=~\"$target\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"} / node_filesystem_size_bytes{target=~\"$target\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}) * 100)",
+          "legendFormat": "Max usage",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Max Disk Usage",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": ""},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "decimals": 0,
+          "mappings": [
+            {"options": {"match": "null", "result": {"text": "Not filling"}}, "type": "special"}
+          ],
+          "noValue": "Not filling",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red"},
+              {"color": "orange", "value": 7},
+              {"color": "green", "value": 30}
+            ]
+          },
+          "unit": "d"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 12},
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": ""},
+          "editorMode": "code",
+          "expr": "min(\n  (\n    node_filesystem_avail_bytes{target=~\"$target\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}\n    / -deriv(node_filesystem_avail_bytes{target=~\"$target\", environment=~\"$environment\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\", mountpoint!~\"/boot/efi\"}[6h])\n  ) / 86400 > 0 < 365\n)",
+          "legendFormat": "Estimated days until full",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Fastest Filling Disk — Est. Days Until Full",
+      "type": "stat"
+    }
+  ],
+  "preload": false,
+  "refresh": "5m",
+  "schemaVersion": 41,
+  "tags": ["node_exporter", "disk", "prometheus"],
+  "templating": {
+    "list": [
+      {
+        "current": {"text": "All", "value": ["$__all"]},
+        "definition": "label_values(node_filesystem_avail_bytes, environment)",
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "query": "label_values(node_filesystem_avail_bytes, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"text": "All", "value": ["$__all"]},
+        "definition": "label_values(node_filesystem_avail_bytes{environment=~\"$environment\"}, target)",
+        "includeAll": true,
+        "label": "Host",
+        "multi": true,
+        "name": "target",
+        "options": [],
+        "query": {
+          "query": "label_values(node_filesystem_avail_bytes{environment=~\"$environment\"}, target)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"text": "All", "value": ["$__all"]},
+        "definition": "label_values(node_filesystem_avail_bytes{target=~\"$target\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\"}, mountpoint)",
+        "includeAll": true,
+        "label": "Mountpoint",
+        "multi": true,
+        "name": "mountpoint",
+        "options": [],
+        "query": {
+          "query": "label_values(node_filesystem_avail_bytes{target=~\"$target\", fstype!~\"tmpfs|devtmpfs|squashfs|overlay\"}, mountpoint)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Disk Usage",
+  "uid": "disk_monitoring",
+  "version": 1
+}
