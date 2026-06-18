@@ -7,7 +7,13 @@ aws_access_key_id: ""
 aws_secret_access_key: ""
 aws_region: "eu-central-1"
 
-# Nginx config directories to scan for server_name directives
+# Explicit domain list — if set, nginx config scanning is skipped
+certbot_domains: []
+
+# Nginx config directories to scan for server_name directives (fallback when certbot_domains is empty)
 nginx_config_paths:
   - /etc/nginx/conf.d
   - /etc/nginx/sites-enabled
+
+# User that runs nginx — added to certbot group so it can read /etc/letsencrypt
+nginx_user: nginx

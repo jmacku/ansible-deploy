@@ -1,0 +1,14 @@
+- targets: ["localhost:9100"]
+  labels:
+    environment: "Infrastructure"
+    reporter: "Singapore"
+
+- targets: ["52.74.117.163:9100"]
+  labels:
+    environment: "Infra Prod"
+    reporter: "Singapore"
+
+- targets: ["18.136.169.176:9100"]
+  labels:
+    environment: "Infra Test"
+    reporter: "Singapore"

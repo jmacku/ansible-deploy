@@ -6,3 +6,4 @@ prometheus_config_file: "{{ playbook_dir }}/../inventory/group_files/{{ group_na
 
 blackbox_exporter_version: "0.26.0"
 blackbox_targets_file: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/web-targets.yml"
+node_exporter_targets_file: "{{ playbook_dir }}/../inventory/host_files/{{ inventory_hostname }}/node_exporter_targets.yml"

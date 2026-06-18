@@ -32,6 +32,25 @@
   notify: Reload UFW
   when: ansible_os_family == "Debian"
 
+- name: Allow restricted TCP ports from specific sources
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.0.port | string }}"
+    proto: tcp
+    from_ip: >-
+      {%- if item.1 | regex_search('^[\d.]+$') -%}
+        {{ item.1 }}
+      {%- else -%}
+        {{ lookup('pipe', 'getent hosts ' ~ item.1).split() | first }}
+      {%- endif -%}
+  loop: "{{ expose_tcp_ports_restricted | subelements('from_ips') }}"
+  loop_control:
+    label: "port {{ item.0.port }} from {{ item.1 }}"
+  notify: Reload UFW
+  when:
+    - ansible_os_family == "Debian"
+    - expose_tcp_ports_restricted | length > 0
+
 - name: Enable UFW
   community.general.ufw:
     state: enabled

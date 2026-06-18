@@ -17,10 +17,14 @@ scrape_configs:
         labels:
           app: "prometheus"
   - job_name: "node_exporter"
-    static_configs:
-      - targets: ["localhost:9100"]
-        labels:
-          app: "node_exporter"
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+        target_label: target
+    file_sd_configs:
+      - files:
+        - node_exporter_targets.yml
   - job_name: 'blackbox'
     scrape_interval: 20s
     scrape_timeout: 10s

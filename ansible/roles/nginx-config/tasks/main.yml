@@ -1,0 +1,69 @@
+---
+- name: Copy custom Nginx config file to nginx directory
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/{{ item | basename }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/_services/nginx/nginx.conf', wantlist=True) }}"
+  notify: restart nginx
+  tags: nginx-config
+
+- name: Copy default custom Nginx config files to conf.d
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/{{ item | basename }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/_services/nginx/conf.d/*.conf', wantlist=True) }}"
+  notify: restart nginx
+  tags: nginx-config
+
+- name: Template specific Nginx config files to conf.d
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/nginx/conf.d/{{ item | basename | regex_replace('.j2$', '') }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+    backup: yes
+  loop: "{{ lookup('fileglob', playbook_dir + '/../inventory/group_files/' + group_names[0] + '/nginx/conf.d/*.conf.j2', wantlist=True) }}"
+  when: group_names[0] is defined
+  notify: restart nginx
+  tags: [nginx-config, nginx-config-custom]
+
+- name: Deploy options-ssl-nginx.conf
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../inventory/group_files/_services/nginx/options-ssl-nginx.conf.j2"
+    dest: "/etc/letsencrypt/options-ssl-nginx.conf"
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: '0640'
+    backup: yes
+  notify: restart nginx
+  tags: nginx-ssl
+
+- name: Template per-domain nginx config for kardi proxy
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../inventory/group_files/_services/kardi-proxy/kardi-proxy.conf.j2"
+    dest: "/etc/nginx/conf.d/{{ domain }}.conf"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: '0644'
+    backup: yes
+  loop: "{{ kardiai_proxy_hosts }}"
+  loop_control:
+    loop_var: domain
+  when: kardiai_proxy_hosts is defined
+  notify: restart nginx
+  tags: [nginx-config, kardi-proxy]
+
+- name: Ensure Nginx is enabled and running
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- meta: flush_handlers

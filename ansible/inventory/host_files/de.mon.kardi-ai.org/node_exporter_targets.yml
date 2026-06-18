@@ -1,0 +1,4 @@
+- targets: ["localhost:9100"]
+  labels:
+    environment: "Infrastructure"
+    reporter: "Germany"

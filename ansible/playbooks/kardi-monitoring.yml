@@ -6,6 +6,7 @@
   roles:
     - base
     - firewall
+    - certbot-route53
     - docker
     - node_exporter
     - blackbox_exporter
@@ -13,5 +14,4 @@
     - alertmanager
     - grafana
     - nginx
-    - nginx-conf
-    - certbot-nginx
+    - nginx-config

@@ -1,4 +1,43 @@
 groups:
+  - name: disk_alerts
+    rules:
+      - alert: DiskSpaceWarning
+        expr: >
+          (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}
+               / node_filesystem_size_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "Disk usage above 80% on {{ $labels.instance }}"
+          description: "Partition {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | printf \"%.1f\" }}% full."
+
+      - alert: DiskSpaceCritical
+        expr: >
+          (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}
+               / node_filesystem_size_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "Disk usage above 90% on {{ $labels.instance }}"
+          description: "Partition {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | printf \"%.1f\" }}% full. Immediate action required."
+
+      - alert: DiskFillingUpFast
+        expr: >
+          predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}[6h], 24 * 3600) < 0
+          and node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"}
+              / node_filesystem_size_bytes{fstype!~"tmpfs|devtmpfs|squashfs|overlay",mountpoint!~"/boot/efi"} < 0.5
+        for: 30m
+        labels:
+          severity: info
+          environment: "{{ $labels.environment }}"
+        annotations:
+          summary: "Disk filling up fast on {{ $labels.instance }}"
+          description: "Partition {{ $labels.mountpoint }} on {{ $labels.instance }} is predicted to fill up within 24 hours based on the last 6 hours trend."
+
   - name: blackbox_alerts
     rules:
       - alert: EndpointDown
@@ -25,7 +64,7 @@ groups:
         expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 14
         for: 1h
         labels:
-          severity: info
+          severity: warning
           environment: "{{ $labels.environment }}"
         annotations:
           summary: "SSL certificate will expire soon"

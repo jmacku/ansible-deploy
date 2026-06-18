@@ -1,13 +1,9 @@
 ---
-# Email address for Let's Encrypt registrations
 certbot_email: "devops+certbot@kardi-ai.com"
+certbot_staging: false
+aws_region: "eu-central-1"
 
-# List of domains to obtain certificates for
+# Base domain — each host gets at minimum its own hostname
+# Override per host_vars to add extra domains (e.g. de.mon has status.kardi-ai.com)
 certbot_domains:
   - "{{ inventory_hostname }}"
-
-# Use Let's Encrypt staging environment? (true/false)
-certbot_staging: false
-
-# Command to run after successful renewal (e.g., reload nginx)
-certbot_renew_hook: "systemctl reload nginx"

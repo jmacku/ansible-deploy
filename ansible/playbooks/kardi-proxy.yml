@@ -5,6 +5,9 @@
 
   roles:
     - base
+    - firewall
+    - docker
+    - node_exporter
     - certbot-route53
-#    - nginx_config
-#    - copy-secrets-from-k8s
+    - nginx
+    - nginx-config

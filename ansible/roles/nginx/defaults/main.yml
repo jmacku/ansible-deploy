@@ -1,5 +1,5 @@
 # yaml
-nginx_repo_url: "https://nginx.org/packages/mainline/ubuntu"
+nginx_repo_url: "https://nginx.org/packages/{{ ansible_lsb.id | lower }}"
 nginx_repo_key_url: "https://nginx.org/keys/nginx_signing.key"
 nginx_version: "stable"  # options: stable, mainline
 

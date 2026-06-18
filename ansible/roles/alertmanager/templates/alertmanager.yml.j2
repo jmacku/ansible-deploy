@@ -7,7 +7,7 @@ route:
   routes:
     # ===== PRODUCTION prostředí =====
     - match_re:
-        environment: '(Production EU|Production UAE|Website)'
+        environment: '(Production EU|Production UAE|Website|Infra Prod|Infrastructure)'
       receiver: 'slack-production'
       group_by: ['alertname', 'instance', 'environment']
       routes:
@@ -25,7 +25,7 @@ route:
           repeat_interval: 8h
     # ===== TEST prostředí =====
     - match_re:
-        environment: '(Test EU|Test UAE)'
+        environment: '(Test EU|Test UAE|Infra Test)'
       receiver: 'slack-test'
       group_by: ['alertname', 'instance', 'environment']
       routes:

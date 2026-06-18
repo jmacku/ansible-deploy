@@ -1,3 +1,12 @@
+- name: Remove legacy nginx apt source files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/nginx_org.list
+    - /etc/apt/sources.list.d/nginx_org_src.list
+    - /etc/apt/sources.list.d/nginx.list
+
 - name: Install prerequisites for apt repository
   apt:
     name: [ 'gnupg', 'curl', 'lsb-release', 'ca-certificates' ]
@@ -15,7 +24,7 @@
   args:
     creates: /tmp/nginx_signing.key.gpg
 
-- name: copy nginx.org key to keyring
+- name: Copy nginx.org key to keyring
   ansible.builtin.copy:
     src: /tmp/nginx_signing.key.gpg
     dest: /usr/share/keyrings/nginx-archive-keyring.gpg
@@ -28,11 +37,8 @@
     state: present
     filename: nginx
 
-- name: Update apt cache
-  apt:
-    update_cache: yes
-
 - name: Install nginx
   apt:
     name: nginx
     state: present
+    update_cache: yes

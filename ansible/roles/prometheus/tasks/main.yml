@@ -99,6 +99,17 @@
   when: blackbox_targets_file is defined
   tags: prometheus-config
 
+- name: Copy node_exporter targets file
+  ansible.builtin.copy:
+    src: "{{ node_exporter_targets_file }}"
+    dest: "{{ prometheus_install_path }}/node_exporter_targets.yml"
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: '0644'
+  notify: restart prometheus
+  when: node_exporter_targets_file is defined
+  tags: prometheus-config
+
 - name: Copy Alert rules
   ansible.builtin.copy:
     src: "{{ alertmanager_rules_file }}" # Cesta na tvém lokálním stroji

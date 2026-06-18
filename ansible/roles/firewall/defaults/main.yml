@@ -2,5 +2,14 @@
 # Default ports to expose (besides SSH)
 expose_tcp_ports: []
 
+# Ports restricted to specific source IPs or hostnames
+# Example:
+#   expose_tcp_ports_restricted:
+#     - port: 9100
+#       from_ips:
+#         - "10.0.0.1"
+#         - "monitor.example.com"
+expose_tcp_ports_restricted: []
+
 # The SSH port (standard is 22, but keep it variable just in case)
 ssh_port: 22

@@ -37,23 +37,32 @@
     group: root
     mode: '0600'
 
-- name: Find nginx config files
+# --- Domain discovery: explicit list OR nginx config scan ---
+
+- name: Use explicit domain list from inventory
+  ansible.builtin.set_fact:
+    discovered_domains: "{{ certbot_domains | unique | list }}"
+  when: certbot_domains | length > 0
+
+- name: Find nginx config files (fallback when certbot_domains is empty)
   ansible.builtin.find:
     paths: "{{ nginx_config_paths }}"
     patterns: "*.conf"
     file_type: file
   register: nginx_config_files
   failed_when: false
+  when: certbot_domains | length == 0
 
 - name: Read nginx config files
   ansible.builtin.slurp:
     src: "{{ item.path }}"
   loop: "{{ nginx_config_files.files | default([]) }}"
   register: nginx_config_contents
+  when: certbot_domains | length == 0
 
 - name: Extract and filter domains from server_name directives
   ansible.builtin.set_fact:
-    nginx_domains: >-
+    discovered_domains: >-
       {{
         nginx_config_contents.results
         | map(attribute='content')
@@ -70,10 +79,49 @@
         | unique
         | list
       }}
+  when: certbot_domains | length == 0
 
-- name: Show discovered nginx domains
+- name: Show domains to process
   ansible.builtin.debug:
-    msg: "Domains found in nginx configs: {{ nginx_domains }}"
+    msg: "Domains for certificate issuance: {{ discovered_domains }}"
+
+# --- Cleanup: remove suffixed and broken certificates ---
+# certbot certificates doesn't emit Certificate Name lines for broken/invalid configs,
+# so grep-based detection fails. We work directly on the filesystem instead.
+# For each configured domain we:
+#   1. delete any suffixed renewal configs (domain-0001.conf, domain-0002.conf, ...)
+#      and their live/ and archive/ directories
+#   2. delete the base renewal config if it exists but certbot no longer considers it
+#      valid — this removes the orphan live/<domain>/ dir that causes the next
+#      issuance to get a numeric suffix
+
+- name: Clean up suffixed and broken certificates for configured domains
+  ansible.builtin.shell: |
+    domain="{{ item }}"
+    changed=0
+    for conf in /etc/letsencrypt/renewal/${domain}-[0-9]*.conf; do
+      [ -f "$conf" ] || continue
+      cert_name=$(basename "$conf" .conf)
+      rm -f "$conf"
+      rm -rf "/etc/letsencrypt/live/${cert_name}"
+      rm -rf "/etc/letsencrypt/archive/${cert_name}"
+      changed=1
+    done
+    if [ -f "/etc/letsencrypt/renewal/${domain}.conf" ] && \
+       ! certbot certificates 2>/dev/null | grep -qE "^[ ]*Certificate Name:[ ]+${domain}$"; then
+      rm -f "/etc/letsencrypt/renewal/${domain}.conf"
+      rm -rf "/etc/letsencrypt/live/${domain}"
+      rm -rf "/etc/letsencrypt/archive/${domain}"
+      changed=1
+    fi
+    echo $changed
+  loop: "{{ discovered_domains }}"
+  loop_control:
+    label: "{{ item }}"
+  register: _cleanup_result
+  changed_when: _cleanup_result.stdout | trim == '1'
+
+# --- Certificate issuance ---
 
 - name: Get existing certbot certificates
   ansible.builtin.command: certbot certificates
@@ -97,7 +145,7 @@
 
 - name: Compute domains that need new certificates
   ansible.builtin.set_fact:
-    domains_to_issue: "{{ nginx_domains | difference(existing_domains) }}"
+    domains_to_issue: "{{ discovered_domains | difference(existing_domains) }}"
 
 - name: Show domains to be issued
   ansible.builtin.debug:
@@ -129,3 +177,33 @@
     name: certbot.timer
     enabled: true
     state: started
+
+# --- Fix permissions so nginx can read /etc/letsencrypt ---
+# /etc/letsencrypt/live and /etc/letsencrypt/archive are 700 by default.
+# We create a shared group, add nginx to it, and install a deploy hook
+# so permissions are re-applied automatically on every renewal.
+
+- name: Ensure certbot group exists
+  ansible.builtin.group:
+    name: certbot
+    system: true
+
+- name: Add nginx user to certbot group
+  ansible.builtin.user:
+    name: "{{ nginx_user }}"
+    groups: certbot
+    append: true
+
+- name: Create letsencrypt permissions deploy hook
+  ansible.builtin.copy:
+    dest: /etc/letsencrypt/renewal-hooks/deploy/fix-permissions.sh
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      chgrp -R certbot /etc/letsencrypt/live /etc/letsencrypt/archive
+      find /etc/letsencrypt/live /etc/letsencrypt/archive -type d -exec chmod g+rX {} \;
+      find /etc/letsencrypt/archive -name "*.pem" -exec chmod g+r {} \;
+
+- name: Apply letsencrypt permissions now
+  ansible.builtin.command: /etc/letsencrypt/renewal-hooks/deploy/fix-permissions.sh
+  changed_when: false

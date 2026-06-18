@@ -1,1 +1,1 @@
-nginx_ubuntu_codename: "questing"  # Ubuntu 25 codename
+nginx_ubuntu_codename: "{{ ansible_lsb.codename }}"

@@ -1,4 +1,4 @@
 ---
 certbot_email: "devops+certbot@kardi-ai.com"
 certbot_staging: false
-certbot_renew_hook: "systemctl reload nginx"
+certbot_domains: "{{ kardiai_proxy_hosts }}"
