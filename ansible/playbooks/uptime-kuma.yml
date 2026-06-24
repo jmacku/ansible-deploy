@@ -15,8 +15,6 @@
     uptime_kuma_nginx_status_host: "status.kardi-ai.com"
     uptime_kuma_nginx_server_name: "uptime.{{ uptime_kuma_nginx_host }}"
     uptime_kuma_nginx_ssl_enabled: true
-    uptime_kuma_nginx_ssl_cert_path: "/etc/letsencrypt/live/{{ uptime_kuma_nginx_host }}/fullchain.pem"
-    uptime_kuma_nginx_ssl_key_path: "/etc/letsencrypt/live/{{ uptime_kuma_nginx_host }}/privkey.pem"
 
     uptime_kuma_allowed_ips:
       - 18.193.52.239

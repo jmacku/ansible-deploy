@@ -14,8 +14,8 @@ server {
     server_name {{ uptime_kuma_nginx_server_name }};
 
     # SSL Configuration
-    ssl_certificate {{ uptime_kuma_nginx_ssl_cert_path }};
-    ssl_certificate_key {{ uptime_kuma_nginx_ssl_key_path }};
+    ssl_certificate /etc/letsencrypt/live/{{ uptime_kuma_nginx_server_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ uptime_kuma_nginx_server_name }}/privkey.pem;
 
     # SSL Security Settings
     ssl_protocols TLSv1.2 TLSv1.3;

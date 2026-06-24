@@ -13,7 +13,7 @@
     - test nginx config
   tags: [nginx-config]
 
-- name: Create Nginx configuration for Uptime Kuma
+- name: Create Nginx configuration for status page
   ansible.builtin.template:
     src: nginx-uptime-status.conf.j2
     dest: "{{ uptime_kuma_nginx_config_path }}/uptime-status-page.conf"

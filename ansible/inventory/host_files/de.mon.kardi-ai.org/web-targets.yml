@@ -6,6 +6,12 @@
     environment: "Website"
     reporter: "Germany"
 
+- targets:
+    - https://status.kardi-ai.com
+  labels:
+    environment: "Infrastructure"
+    reporter: "Germany"
+
 ## EU Test env
 - targets:
   ## API services

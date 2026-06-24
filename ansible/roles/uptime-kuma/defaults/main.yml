@@ -40,9 +40,8 @@ uptime_kuma_health_check_delay: 10
 # Nginx configuration
 uptime_kuma_nginx_enabled: true
 uptime_kuma_nginx_server_name: "{{ inventory_hostname | default('localhost') }}"
+uptime_kuma_nginx_status_host: ""
 uptime_kuma_nginx_ssl_enabled: true
-uptime_kuma_nginx_ssl_cert_path: "/etc/ssl/certs/{{ uptime_kuma_nginx_server_name }}.crt"
-uptime_kuma_nginx_ssl_key_path: "/etc/ssl/private/{{ uptime_kuma_nginx_server_name }}.key"
 uptime_kuma_nginx_config_path: "/etc/nginx/conf.d"
 uptime_kuma_nginx_config_enabled_path: "/etc/nginx/sites-enabled"
 
